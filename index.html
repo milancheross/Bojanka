@@ -3,236 +3,185 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Moja Vesela Bojanka</title>
+    <title>Moja Čarobna Bojanka</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body {
-            background-color: #f0f9ff;
-            touch-action: manipulation;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        #canvas-container {
-            position: relative;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-            background-color: white;
-            border-radius: 20px;
-            overflow: hidden;
-            cursor: crosshair;
-        }
-        canvas {
-            display: block;
-            max-width: 100%;
-            height: auto;
-        }
-        .color-btn {
-            width: 45px;
-            height: 45px;
-            border-radius: 50%;
-            border: 3px solid white;
-            transition: transform 0.2s, border-color 0.2s;
-            cursor: pointer;
-        }
-        .color-btn:hover {
-            transform: scale(1.1);
-        }
-        .color-btn.active {
-            border-color: #3b82f6;
-            transform: scale(1.2);
-        }
+        body { background-color: #fdf2f8; font-family: 'Segoe UI', sans-serif; touch-action: manipulation; }
+        #canvas-container { background: white; border-radius: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); overflow: hidden; border: 6px solid white; }
+        canvas { display: block; max-width: 100%; height: auto; cursor: url('https://img.icons8.com/ios-filled/25/000000/paint-bucket.png'), auto; }
+        .color-btn { width: 45px; height: 45px; border-radius: 50%; border: 3px solid white; transition: 0.2s; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .color-btn.active { transform: scale(1.25); border-color: #db2777; box-shadow: 0 0 15px rgba(219, 39, 119, 0.4); }
+        .thumb-btn { width: 100%; aspect-ratio: 1; border: 3px solid #f3f4f6; border-radius: 15px; overflow: hidden; transition: 0.2s; background: white; }
+        .thumb-btn:hover { border-color: #db2777; transform: translateY(-2px); }
+        .thumb-btn img { width: 100%; height: 100%; object-fit: cover; }
+        #gallery::-webkit-scrollbar { width: 4px; }
+        #gallery::-webkit-scrollbar-thumb { background: #f9a8d4; border-radius: 10px; }
     </style>
 </head>
-<body class="flex flex-col items-center min-h-screen p-4">
+<body class="p-4 md:p-8 flex flex-col items-center min-h-screen">
 
-    <!-- Zaglavlje -->
-    <header class="text-center mb-6">
-        <h1 class="text-4xl font-bold text-blue-600 mb-2">🎨 Moja Bojanka</h1>
-        <p class="text-gray-600 italic">Izaberi boju i klikni na deo slike koji želiš da obojiš!</p>
+    <header class="text-center mb-8">
+        <h1 class="text-5xl font-black text-pink-600 drop-shadow-sm">🎨 BOJANKA</h1>
+        <p class="text-pink-400 font-medium mt-2">Izaberi sliku i oživi je bojama!</p>
     </header>
 
-    <main class="w-full max-w-5xl flex flex-col md:flex-row gap-6">
+    <main class="w-full max-w-6xl flex flex-col lg:flex-row gap-8">
         
-        <!-- Bočna traka sa alatima -->
-        <aside class="flex flex-col gap-4 bg-white p-4 rounded-2xl shadow-md md:w-48 order-2 md:order-1">
-            <h2 class="font-bold text-center text-gray-700">Paleta Boja</h2>
-            <div id="palette" class="grid grid-cols-4 md:grid-cols-2 gap-3 justify-items-center">
-                <!-- Boje se generišu putem JS-a -->
+        <aside class="lg:w-1/4 flex flex-col gap-4 order-2 lg:order-1">
+            <div class="bg-white p-5 rounded-3xl shadow-xl border border-pink-100">
+                <h2 class="font-bold text-gray-700 mb-4 text-center border-b pb-2">🖼️ IZABERI SLIKU</h2>
+                <div id="gallery" class="grid grid-cols-4 lg:grid-cols-2 gap-3 max-h-[400px] overflow-y-auto p-1">
+                    </div>
             </div>
-            
-            <hr class="my-2">
-            
-            <div class="flex flex-col gap-2">
-                <label for="imageUpload" class="bg-blue-500 hover:bg-blue-600 text-white text-center py-2 px-4 rounded-lg cursor-pointer transition text-sm">
-                    📁 Ubaci Sliku
+
+            <div class="flex flex-col gap-3">
+                <label class="w-full bg-pink-500 hover:bg-pink-600 text-white text-center py-3 rounded-2xl font-bold cursor-pointer transition shadow-lg">
+                    ➕ DODAJ SVOJU SLIKU
+                    <input type="file" id="upload" class="hidden" accept="image/*">
                 </label>
-                <input type="file" id="imageUpload" accept="image/*" class="hidden">
-                
-                <button id="clearBtn" class="bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-lg transition text-sm">
-                    🗑️ Očisti Sve
-                </button>
-                
-                <button id="downloadBtn" class="bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded-lg transition text-sm">
-                    💾 Sačuvaj Rad
-                </button>
+                <button id="reset" class="w-full bg-orange-400 hover:bg-orange-500 text-white py-3 rounded-2xl font-bold transition shadow-lg">✨ OČISTI BOJE</button>
+                <button id="save" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white py-3 rounded-2xl font-bold transition shadow-lg">💾 SAČUVAJ RAD</button>
             </div>
         </aside>
 
-        <!-- Glavni Canvas -->
-        <section id="canvas-container" class="flex-grow order-1 md:order-2 flex items-center justify-center border-4 border-dashed border-blue-200">
-            <canvas id="paintCanvas"></canvas>
+        <section id="canvas-container" class="flex-grow order-1 lg:order-2 flex items-center justify-center min-h-[450px]">
+            <canvas id="canvas"></canvas>
         </section>
+
+        <aside class="lg:w-24 bg-white p-5 rounded-3xl shadow-xl border border-pink-100 order-3">
+            <h2 class="font-bold text-center text-pink-300 text-xs mb-4">BOJE</h2>
+            <div id="palette" class="grid grid-cols-6 lg:grid-cols-1 gap-4 justify-items-center"></div>
+        </aside>
 
     </main>
 
     <script>
-        const canvas = document.getElementById('paintCanvas');
-        const ctx = canvas.getContext('2d', { willReadFrequently: true });
-        const palette = document.getElementById('palette');
-        const imageUpload = document.getElementById('imageUpload');
-        const clearBtn = document.getElementById('clearBtn');
-        const downloadBtn = document.getElementById('downloadBtn');
-        
-        let currentColor = '#ff0000';
-        let originalImage = null;
-
-        const colors = [
-            '#ff0000', '#00ff00', '#0000ff', '#ffff00', 
-            '#ffa500', '#800080', '#ffc0cb', '#a52a2a', 
-            '#ffffff', '#000000', '#00ffff', '#7fff00',
-            '#ffd700', '#ff69b4', '#40e0d0', '#c0c0c0'
+        // --- KONFIGURACIJA ---
+        const imageFolder = 'images/'; // Folder gde držiš slike
+        const galleryImages = [
+            'pasmacka.jpg', // pm
+            'farma.png', // farm
+            'traktor.png', // tr
         ];
 
-        // Inicijalizacija palete
-        colors.forEach((color, index) => {
-            const btn = document.createElement('div');
-            btn.className = 'color-btn' + (index === 0 ? ' active' : '');
-            btn.style.backgroundColor = color;
-            btn.onclick = () => {
-                document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                currentColor = color;
-            };
-            palette.appendChild(btn);
-        });
+        const colors = [
+            '#ff4757', '#2ed573', '#1e90ff', '#ffa502', '#ffffff', 
+            '#2f3542', '#a29bfe', '#ff7f50', '#70a1ff', '#5352ed',
+            '#eccc68', '#ff6b81', '#7bed9f', '#ced6e0', '#374151'
+        ];
 
-        // Osnovna slika (Pinocchio primer)
-        window.onload = () => {
-            loadDefaultImage();
-        };
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        let activeColor = colors[0];
+        let originalImg = null;
 
-        function loadDefaultImage() {
+        // --- INICIJALIZACIJA ---
+        function init() {
+            // Generisanje palete
+            const palette = document.getElementById('palette');
+            colors.forEach((color, i) => {
+                const btn = document.createElement('div');
+                btn.className = `color-btn ${i === 0 ? 'active' : ''}`;
+                btn.style.backgroundColor = color;
+                btn.onclick = () => {
+                    document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    activeColor = color;
+                };
+                palette.appendChild(btn);
+            });
+
+            // Generisanje galerije
+            const gallery = document.getElementById('gallery');
+            galleryImages.forEach(name => {
+                const btn = document.createElement('button');
+                btn.className = 'thumb-btn';
+                btn.onclick = () => loadTemplate(imageFolder + name);
+                const img = document.createElement('img');
+                img.src = imageFolder + name;
+                btn.appendChild(img);
+                gallery.appendChild(btn);
+            });
+
+            loadTemplate(imageFolder + galleryImages[0]);
+        }
+
+        function loadTemplate(src) {
             const img = new Image();
             img.crossOrigin = "anonymous";
-            // Koristimo placeholder bojanku ako nema slike
-            img.src = 'https://img.freepik.com/free-vector/hand-drawn-pinocchio-illustration_23-2148855325.jpg?semt=ais_hybrid'; 
-            img.onload = () => setupCanvas(img);
-        }
-
-        function setupCanvas(img) {
-            originalImage = img;
-            // Postavljanje veličine platna
-            const maxWidth = 800;
-            const scale = Math.min(maxWidth / img.width, 1);
-            canvas.width = img.width * scale;
-            canvas.height = img.height * scale;
-            
-            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-            // Osiguravamo da su linije čiste
-            makeBlackAndWhite();
-        }
-
-        function makeBlackAndWhite() {
-            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            const data = imageData.data;
-            for (let i = 0; i < data.length; i += 4) {
-                const avg = (data[i] + data[i + 1] + data[i + 2]) / 3;
-                const val = avg > 200 ? 255 : 0; // Granična vrednost za "čistu" bojanku
-                data[i] = data[i+1] = data[i+2] = val;
-            }
-            ctx.putImageData(imageData, 0, 0);
-        }
-
-        // Upload korisničke slike
-        imageUpload.onchange = (e) => {
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                const img = new Image();
-                img.onload = () => setupCanvas(img);
-                img.src = event.target.result;
+            img.onload = () => {
+                originalImg = img;
+                const ratio = Math.min(800 / img.width, 600 / img.height, 1);
+                canvas.width = img.width * ratio;
+                canvas.height = img.height * ratio;
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                prepare();
             };
-            reader.readAsDataURL(e.target.files[0]);
-        };
-
-        // Flood Fill Algoritam
-        canvas.addEventListener('mousedown', handleAction);
-        canvas.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            handleAction(e.touches[0]);
-        });
-
-        function handleAction(e) {
-            const rect = canvas.getBoundingClientRect();
-            const x = Math.round((e.clientX - rect.left) * (canvas.width / rect.width));
-            const y = Math.round((e.clientY - rect.top) * (canvas.height / rect.height));
-            
-            floodFill(x, y, hexToRgb(currentColor));
+            img.src = src;
         }
+
+        function prepare() {
+            const idata = ctx.getImageData(0,0,canvas.width,canvas.height);
+            const d = idata.data;
+            for(let i=0; i<d.length; i+=4) {
+                const avg = (d[i]+d[i+1]+d[i+2])/3;
+                const v = avg > 180 ? 255 : 0; // Čisti belu i crnu
+                d[i] = d[i+1] = d[i+2] = v; d[i+3] = 255;
+            }
+            ctx.putImageData(idata, 0, 0);
+        }
+
+        // --- FLOOD FILL (BOJENJE) ---
+        canvas.onclick = (e) => {
+            const r = canvas.getBoundingClientRect();
+            const x = Math.floor((e.clientX - r.left) * (canvas.width / r.width));
+            const y = Math.floor((e.clientY - r.top) * (canvas.height / r.height));
+            
+            const fillRGB = hexToRgb(activeColor);
+            fill(x, y, fillRGB);
+        };
 
         function hexToRgb(hex) {
-            const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-            return result ? {
-                r: parseInt(result[1], 16),
-                g: parseInt(result[2], 16),
-                b: parseInt(result[3], 16)
-            } : null;
+            const res = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+            return { r: parseInt(res[1], 16), g: parseInt(res[2], 16), b: parseInt(res[3], 16) };
         }
 
-        function floodFill(startX, startY, fillColor) {
-            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            const width = imageData.width;
-            const height = imageData.height;
-            const pixels = imageData.data;
+        function fill(startX, startY, color) {
+            const id = ctx.getImageData(0,0,canvas.width,canvas.height);
+            const w = id.width, h = id.height, d = id.data;
+            const p = (startY * w + startX) * 4;
+            const sr = d[p], sg = d[p+1], sb = d[p+2];
 
-            const startPos = (startY * width + startX) * 4;
-            const startR = pixels[startPos];
-            const startG = pixels[startPos + 1];
-            const startB = pixels[startPos + 2];
-
-            // Ne bojimo ako je kliknuto na crnu liniju ili ako je boja ista
-            if (startR < 50 && startG < 50 && startB < 50) return; 
-            if (startR === fillColor.r && startG === fillColor.g && startB === fillColor.b) return;
+            if(sr < 50 && sg < 50 && sb < 50) return; // Klik na crnu liniju
+            if(sr === color.r && sg === color.g && sb === color.b) return;
 
             const stack = [[startX, startY]];
-
-            while (stack.length > 0) {
+            while(stack.length) {
                 const [x, y] = stack.pop();
-                let pos = (y * width + x) * 4;
-
-                if (x < 0 || x >= width || y < 0 || y >= height) continue;
-                if (pixels[pos] !== startR || pixels[pos + 1] !== startG || pixels[pos + 2] !== startB) continue;
-
-                // Bojenje piksela
-                pixels[pos] = fillColor.r;
-                pixels[pos + 1] = fillColor.g;
-                pixels[pos + 2] = fillColor.b;
-                pixels[pos + 3] = 255;
-
-                stack.push([x + 1, y], [x - 1, y], [x, y + 1], [x, y - 1]);
+                const i = (y * w + x) * 4;
+                if(x>=0 && x<w && y>=0 && y<h && d[i]===sr && d[i+1]===sg && d[i+2]===sb) {
+                    d[i]=color.r; d[i+1]=color.g; d[i+2]=color.b; d[i+3]=255;
+                    stack.push([x+1,y],[x-1,y],[x,y+1],[x,y-1]);
+                }
             }
-
-            ctx.putImageData(imageData, 0, 0);
+            ctx.putImageData(id, 0, 0);
         }
 
-        clearBtn.onclick = () => {
-            if (originalImage) setupCanvas(originalImage);
+        // --- KONTROLE ---
+        document.getElementById('upload').onchange = (e) => {
+            const reader = new FileReader();
+            reader.onload = (ev) => loadTemplate(ev.target.result);
+            reader.readAsDataURL(e.target.files[0]);
+        };
+        document.getElementById('reset').onclick = () => loadTemplate(originalImg.src);
+        document.getElementById('save').onclick = () => {
+            const a = document.createElement('a');
+            a.download = 'moja-bojanka.png';
+            a.href = canvas.toDataURL();
+            a.click();
         };
 
-        downloadBtn.onclick = () => {
-            const link = document.createElement('a');
-            link.download = 'moja-bojanka.png';
-            link.href = canvas.toDataURL();
-            link.click();
-        };
+        init();
     </script>
 </body>
 </html>
-
