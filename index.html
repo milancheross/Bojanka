@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ićova Bojanka</title>
+    <title>IĆOVA Bojanka</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { background-color: #fdf2f8; font-family: 'Segoe UI', sans-serif; touch-action: manipulation; }
@@ -21,8 +21,8 @@
             display: block; 
             max-width: 100%; 
             height: auto; 
-            /* Kursor sa preciznim vrhom (hotspot na 0,32 za kanticu) */
-            cursor: url('https://img.icons8.com/ios-filled/32/000000/fill-color.png') 0 32, crosshair;
+            /* Krstić je najprecizniji za desktop korisnike */
+            cursor: crosshair;
             image-rendering: pixelated;
         }
         .color-btn { width: 45px; height: 45px; border-radius: 50%; border: 3px solid white; transition: 0.2s; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
@@ -38,7 +38,7 @@
 
     <header class="text-center mb-8">
         <h1 class="text-5xl font-black text-pink-600 drop-shadow-sm">🎨 IĆOVA BOJANKA</h1>
-        <p class="text-pink-400 font-medium mt-2">Precizno bojenje vrhom kursora!</p>
+        <p class="text-pink-400 font-medium mt-2">Precizno bojenje krstićem!</p>
     </header>
 
     <main class="w-full max-w-6xl flex flex-col lg:flex-row gap-8">
@@ -89,10 +89,10 @@
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d', { willReadFrequently: true });
         let activeColor = colors[0];
-        let originalImgSrc = '';
+        let currentImageSrc = '';
 
         function init() {
-            // Paleta boja
+            // Generisanje palete
             const palette = document.getElementById('palette');
             colors.forEach((color, i) => {
                 const btn = document.createElement('div');
@@ -106,23 +106,23 @@
                 palette.appendChild(btn);
             });
 
-            // Galerija slika
+            // Generisanje galerije (bez Pinokija)
             const gallery = document.getElementById('gallery');
             galleryImages.forEach(name => {
-                const fullPath = imageFolder + name;
+                const path = imageFolder + name;
                 const btn = document.createElement('button');
                 btn.className = 'thumb-btn';
-                btn.onclick = () => loadTemplate(fullPath);
+                btn.onclick = () => loadTemplate(path);
                 
                 const img = document.createElement('img');
-                img.src = fullPath;
-                img.onerror = () => { img.src = 'https://placehold.co/100x100?text=Error'; };
+                img.src = path;
+                img.onerror = () => { img.src = 'https://placehold.co/100x100?text=Slike'; };
                 
                 btn.appendChild(img);
                 gallery.appendChild(btn);
             });
 
-            // Učitaj prvu dostupnu sliku
+            // Početna slika
             if (galleryImages.length > 0) {
                 loadTemplate(imageFolder + galleryImages[0]);
             }
@@ -132,18 +132,21 @@
             const img = new Image();
             img.crossOrigin = "anonymous";
             img.onload = () => {
-                originalImgSrc = src;
+                currentImageSrc = src;
+                
+                // Postavljamo internu rezoluciju platna na veličinu slike
                 canvas.width = img.width;
                 canvas.height = img.height;
                 
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 ctx.drawImage(img, 0, 0);
                 
+                // Priprema slike: čišćenje ivica
                 const idata = ctx.getImageData(0,0,canvas.width,canvas.height);
                 const d = idata.data;
                 for(let i=0; i<d.length; i+=4) {
                     const avg = (d[i]+d[i+1]+d[i+2])/3;
-                    const v = avg > 200 ? 255 : 0;
+                    const v = avg > 210 ? 255 : 0; // Pretvaramo u čisto belu ili crnu
                     d[i] = d[i+1] = d[i+2] = v;
                     d[i+3] = 255;
                 }
@@ -152,12 +155,16 @@
             img.src = src;
         }
 
-        // --- PRECIZNO BOJENJE ---
-        canvas.addEventListener('click', (e) => {
+        // --- PRECIZNO DETEKTOVANJE PIKSELA ---
+        canvas.addEventListener('mousedown', (e) => {
             const rect = canvas.getBoundingClientRect();
-            // Izračunavanje tačnog piksela uzimajući u obzir skaliranje
-            const x = Math.floor((e.clientX - rect.left) * (canvas.width / rect.width));
-            const y = Math.floor((e.clientY - rect.top) * (canvas.height / rect.height));
+            
+            // Skaliranje koordinata miša na realne piksele slike
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            
+            const x = Math.floor((e.clientX - rect.left) * scaleX);
+            const y = Math.floor((e.clientY - rect.top) * scaleY);
             
             const fillRGB = hexToRgb(activeColor);
             floodFill(x, y, fillRGB);
@@ -177,27 +184,24 @@
             const pos = (startY * w + startX) * 4;
             if (pos < 0 || pos >= data.length) return;
 
-            const startR = data[pos];
-            const startG = data[pos+1];
-            const startB = data[pos+2];
+            const sr = data[pos], sg = data[pos+1], sb = data[pos+2];
 
-            if (startR < 50 && startG < 50 && startB < 50) return;
-            if (startR === newColor.r && startG === newColor.g && startB === newColor.b) return;
+            // Ne bojimo ako je crna linija ili već ta boja
+            if (sr < 50 && sg < 50 && sb < 50) return;
+            if (sr === newColor.r && sg === newColor.g && sb === newColor.b) return;
 
             const stack = [[startX, startY]];
-            while (stack.length > 0) {
+            while (stack.length) {
                 const [x, y] = stack.pop();
-                const currentPos = (y * w + x) * 4;
+                const i = (y * w + x) * 4;
 
                 if (x >= 0 && x < w && y >= 0 && y < h &&
-                    data[currentPos] === startR &&
-                    data[currentPos+1] === startG &&
-                    data[currentPos+2] === startB) {
+                    data[i] === sr && data[i+1] === sg && data[i+2] === sb) {
                     
-                    data[currentPos] = newColor.r;
-                    data[currentPos+1] = newColor.g;
-                    data[currentPos+2] = newColor.b;
-                    data[currentPos+3] = 255;
+                    data[i] = newColor.r;
+                    data[i+1] = newColor.g;
+                    data[i+2] = newColor.b;
+                    data[i+3] = 255;
 
                     stack.push([x + 1, y], [x - 1, y], [x, y + 1], [x, y - 1]);
                 }
@@ -205,19 +209,22 @@
             ctx.putImageData(imageData, 0, 0);
         }
 
+        // Dugmad kontrole
         document.getElementById('upload').onchange = (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
             const reader = new FileReader();
             reader.onload = (ev) => loadTemplate(ev.target.result);
-            reader.readAsDataURL(e.target.files[0]);
+            reader.readAsDataURL(file);
         };
         
         document.getElementById('reset').onclick = () => {
-            if(originalImgSrc) loadTemplate(originalImgSrc);
+            if (currentImageSrc) loadTemplate(currentImageSrc);
         };
         
         document.getElementById('save').onclick = () => {
             const link = document.createElement('a');
-            link.download = 'moj-crtez.png';
+            link.download = 'moje_remek_djelo.png';
             link.href = canvas.toDataURL();
             link.click();
         };
