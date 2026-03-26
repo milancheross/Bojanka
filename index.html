@@ -2,92 +2,157 @@
 <html lang="bs">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IĆOVA Bojanka</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>IĆOVA Bojanka - Precizno Bojenje</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { background-color: #fdf2f8; font-family: 'Segoe UI', sans-serif; touch-action: manipulation; }
+        body { 
+            background-color: #fdf2f8; 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            touch-action: none; /* Sprečava skrolovanje prstom dok se boji */
+            -webkit-user-select: none;
+            user-select: none;
+        }
         #canvas-container { 
-            background: white; 
+            background: #eee; 
             border-radius: 24px; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1); 
+            box-shadow: 0 20px 50px rgba(0,0,0,0.15); 
             overflow: hidden; 
-            border: 6px solid white;
+            border: 8px solid white;
+            position: relative;
             display: flex;
             align-items: center;
             justify-content: center;
+            background-image: 
+                linear-gradient(45deg, #f0f0f0 25%, transparent 25%), 
+                linear-gradient(-45deg, #f0f0f0 25%, transparent 25%), 
+                linear-gradient(45deg, transparent 75%, #f0f0f0 75%), 
+                linear-gradient(-45deg, transparent 75%, #f0f0f0 75%);
+            background-size: 20px 20px;
+            background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
         }
         canvas { 
             display: block; 
             max-width: 100%; 
+            max-height: 70vh;
             height: auto; 
-            /* Krstić je najprecizniji za desktop korisnike */
-            cursor: crosshair;
+            cursor: crosshair; /* Precizni krstić za desktop */
             image-rendering: pixelated;
         }
-        .color-btn { width: 45px; height: 45px; border-radius: 50%; border: 3px solid white; transition: 0.2s; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .color-btn.active { transform: scale(1.25); border-color: #db2777; box-shadow: 0 0 15px rgba(219, 39, 119, 0.4); }
-        .thumb-btn { width: 100%; aspect-ratio: 1; border: 3px solid #f3f4f6; border-radius: 15px; overflow: hidden; transition: 0.2s; background: white; padding: 0; }
-        .thumb-btn:hover { border-color: #db2777; transform: translateY(-2px); }
+        .color-btn { 
+            width: 50px; 
+            height: 50px; 
+            border-radius: 50%; 
+            border: 4px solid white; 
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+            cursor: pointer; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
+        }
+        .color-btn.active { 
+            transform: scale(1.3); 
+            border-color: #db2777; 
+            box-shadow: 0 0 20px rgba(219, 39, 119, 0.5); 
+            z-index: 10;
+        }
+        .thumb-btn { 
+            width: 100%; 
+            aspect-ratio: 1; 
+            border: 4px solid white; 
+            border-radius: 18px; 
+            overflow: hidden; 
+            transition: 0.3s; 
+            background: white; 
+            padding: 0;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+        .thumb-btn:hover { 
+            border-color: #f472b6; 
+            transform: translateY(-4px); 
+        }
         .thumb-btn img { width: 100%; height: 100%; object-fit: cover; }
-        #gallery::-webkit-scrollbar { width: 4px; }
+        
+        /* Custom Scrollbar */
+        #gallery::-webkit-scrollbar { width: 6px; }
         #gallery::-webkit-scrollbar-thumb { background: #f9a8d4; border-radius: 10px; }
+        
+        .btn-action {
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .btn-action:active { transform: scale(0.95); }
     </style>
 </head>
 <body class="p-4 md:p-8 flex flex-col items-center min-h-screen">
 
-    <header class="text-center mb-8">
-        <h1 class="text-5xl font-black text-pink-600 drop-shadow-sm">🎨 IĆOVA BOJANKA</h1>
-        <p class="text-pink-400 font-medium mt-2">Precizno bojenje krstićem!</p>
+    <header class="text-center mb-6">
+        <h1 class="text-5xl md:text-6xl font-black text-pink-600 drop-shadow-md tracking-tight">🎨 IĆOVA BOJANKA</h1>
+        <p class="text-pink-400 font-bold mt-2 uppercase tracking-widest text-sm">Precizno bojenje krstićem!</p>
     </header>
 
-    <main class="w-full max-w-6xl flex flex-col lg:flex-row gap-8">
+    <main class="w-full max-w-7xl flex flex-col lg:flex-row gap-8 items-start">
         
-        <aside class="lg:w-1/4 flex flex-col gap-4 order-2 lg:order-1">
-            <div class="bg-white p-5 rounded-3xl shadow-xl border border-pink-100">
-                <h2 class="font-bold text-gray-700 mb-4 text-center border-b pb-2">🖼️ IZABERI SLIKU</h2>
-                <div id="gallery" class="grid grid-cols-4 lg:grid-cols-2 gap-3 max-h-[400px] overflow-y-auto p-1">
+        <!-- LIJEVA STRANA: GALERIJA -->
+        <aside class="w-full lg:w-1/5 flex flex-col gap-4 order-2 lg:order-1">
+            <div class="bg-white p-5 rounded-3xl shadow-2xl border border-pink-100">
+                <h2 class="font-black text-gray-700 mb-4 text-center text-lg border-b-2 border-pink-50 pb-2">🖼️ KOLEKCIJA</h2>
+                <div id="gallery" class="grid grid-cols-4 lg:grid-cols-2 gap-3 max-h-[300px] lg:max-h-[500px] overflow-y-auto p-1">
                     <!-- Slike se generišu ovde -->
                 </div>
             </div>
 
             <div class="flex flex-col gap-3">
-                <label class="w-full bg-pink-500 hover:bg-pink-600 text-white text-center py-3 rounded-2xl font-bold cursor-pointer transition shadow-lg">
-                    ➕ DODAJ SVOJU SLIKU
+                <label class="btn-action w-full bg-pink-500 hover:bg-pink-600 text-white py-4 rounded-2xl font-black cursor-pointer shadow-lg">
+                    <span>➕ TVOJA SLIKA</span>
                     <input type="file" id="upload" class="hidden" accept="image/*">
                 </label>
-                <button id="reset" class="w-full bg-orange-400 hover:bg-orange-500 text-white py-3 rounded-2xl font-bold transition shadow-lg">✨ OČISTI BOJE</button>
-                <button id="save" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white py-3 rounded-2xl font-bold transition shadow-lg">💾 SAČUVAJ RAD</button>
+                <button id="reset" class="btn-action w-full bg-orange-400 hover:bg-orange-500 text-white py-4 rounded-2xl font-black shadow-lg">✨ OČISTI SVE</button>
+                <button id="save" class="btn-action w-full bg-emerald-500 hover:bg-emerald-600 text-white py-4 rounded-2xl font-black shadow-lg">💾 SAČUVAJ RAD</button>
             </div>
         </aside>
 
-        <section id="canvas-container" class="flex-grow order-1 lg:order-2 min-h-[450px]">
+        <!-- CENTAR: PLATNO -->
+        <section id="canvas-container" class="w-full lg:w-3/5 order-1 lg:order-2">
             <canvas id="canvas"></canvas>
+            <div id="loading-overlay" class="absolute inset-0 bg-white/80 flex items-center justify-center hidden rounded-2xl">
+                <div class="animate-bounce text-4xl">🖌️</div>
+            </div>
         </section>
 
-        <aside class="lg:w-24 bg-white p-5 rounded-3xl shadow-xl border border-pink-100 order-3">
-            <h2 class="font-bold text-center text-pink-300 text-xs mb-4">BOJE</h2>
-            <div id="palette" class="grid grid-cols-6 lg:grid-cols-1 gap-4 justify-items-center"></div>
+        <!-- DESNA STRANA: PALETA -->
+        <aside class="w-full lg:w-auto bg-white p-6 rounded-3xl shadow-2xl border border-pink-100 order-3">
+            <h2 class="font-black text-center text-pink-400 text-xs mb-4 tracking-tighter uppercase">Izaberi Boju</h2>
+            <div id="palette" class="grid grid-cols-8 lg:grid-cols-2 gap-4 justify-items-center"></div>
         </aside>
 
     </main>
+
+    <footer class="mt-8 text-pink-300 font-medium text-sm">
+        Savjet: Koristi krstić da naciljaš bijela polja unutar crteža!
+    </footer>
 
     <script>
         // --- KONFIGURACIJA ---
         const imageFolder = './images/'; 
         const galleryImages = [
             'farma.png', 
-            'traktor.png'
+            'traktor.png',
+            'auto.png',
+            'cvijet.png'
         ];
 
         const colors = [
             '#ff4757', '#2ed573', '#1e90ff', '#ffa502', '#ffffff', 
             '#2f3542', '#a29bfe', '#ff7f50', '#70a1ff', '#5352ed',
-            '#eccc68', '#ff6b81', '#7bed9f', '#ced6e0', '#374151'
+            '#eccc68', '#ff6b81', '#7bed9f', '#ced6e0', '#f1c40f',
+            '#e67e22', '#e74c3c', '#9b59b6', '#1abc9c', '#34495e'
         ];
 
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        const loadingOverlay = document.getElementById('loading-overlay');
         let activeColor = colors[0];
         let currentImageSrc = '';
 
@@ -106,7 +171,7 @@
                 palette.appendChild(btn);
             });
 
-            // Generisanje galerije (bez Pinokija)
+            // Generisanje galerije
             const gallery = document.getElementById('gallery');
             galleryImages.forEach(name => {
                 const path = imageFolder + name;
@@ -115,64 +180,97 @@
                 btn.onclick = () => loadTemplate(path);
                 
                 const img = document.createElement('img');
+                // Ako fajl ne postoji lokalno, koristi generisani placeholder za demo
                 img.src = path;
-                img.onerror = () => { img.src = 'https://placehold.co/100x100?text=Slike'; };
+                img.onerror = () => { 
+                    img.src = `https://placehold.co/200x200/white/black?text=${name.split('.')[0]}`; 
+                };
                 
                 btn.appendChild(img);
                 gallery.appendChild(btn);
             });
 
-            // Početna slika
-            if (galleryImages.length > 0) {
-                loadTemplate(imageFolder + galleryImages[0]);
-            }
+            // Učitaj prvu sliku
+            loadTemplate(imageFolder + galleryImages[0]);
         }
 
         function loadTemplate(src) {
+            loadingOverlay.classList.remove('hidden');
             const img = new Image();
             img.crossOrigin = "anonymous";
+            
             img.onload = () => {
                 currentImageSrc = src;
                 
-                // Postavljamo internu rezoluciju platna na veličinu slike
+                // Postavljanje rezolucije na osnovu slike
                 canvas.width = img.width;
                 canvas.height = img.height;
                 
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 ctx.drawImage(img, 0, 0);
                 
-                // Priprema slike: čišćenje ivica
+                // Obrada slike: Čišćenje u čisto crno-bijelu za bolji floodFill
                 const idata = ctx.getImageData(0,0,canvas.width,canvas.height);
                 const d = idata.data;
                 for(let i=0; i<d.length; i+=4) {
                     const avg = (d[i]+d[i+1]+d[i+2])/3;
-                    const v = avg > 210 ? 255 : 0; // Pretvaramo u čisto belu ili crnu
+                    // Ako je skoro bijelo (>200), postavi na čisto bijelo, inače na crno
+                    const v = avg > 200 ? 255 : 0; 
                     d[i] = d[i+1] = d[i+2] = v;
                     d[i+3] = 255;
                 }
                 ctx.putImageData(idata, 0, 0);
+                loadingOverlay.classList.add('hidden');
             };
+
+            img.onerror = () => {
+                // Ako slika ne postoji, napravi prazno platno sa okvirom
+                canvas.width = 800;
+                canvas.height = 600;
+                ctx.fillStyle = "white";
+                ctx.fillRect(0,0,800,600);
+                ctx.strokeStyle = "black";
+                ctx.lineWidth = 10;
+                ctx.strokeRect(50,50,700,500);
+                ctx.font = "30px Arial";
+                ctx.fillStyle = "black";
+                ctx.fillText("Nacrtaj nešto ili dodaj sliku!", 220, 300);
+                loadingOverlay.classList.add('hidden');
+            };
+
             img.src = src;
         }
 
-        // --- PRECIZNO DETEKTOVANJE PIKSELA ---
-        canvas.addEventListener('mousedown', (e) => {
+        // --- PRECIZNO BOJENJE (MOUSE & TOUCH) ---
+
+        function handleAction(e) {
+            if (e.type === 'touchstart') e.preventDefault();
+
             const rect = canvas.getBoundingClientRect();
-            
-            // Skaliranje koordinata miša na realne piksele slike
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+            // Skaliranje koordinata (procentualno u odnosu na CSS veličinu)
             const scaleX = canvas.width / rect.width;
             const scaleY = canvas.height / rect.height;
-            
-            const x = Math.floor((e.clientX - rect.left) * scaleX);
-            const y = Math.floor((e.clientY - rect.top) * scaleY);
-            
+
+            const x = Math.floor((clientX - rect.left) * scaleX);
+            const y = Math.floor((clientY - rect.top) * scaleY);
+
             const fillRGB = hexToRgb(activeColor);
-            floodFill(x, y, fillRGB);
-        });
+            if (fillRGB) floodFill(x, y, fillRGB);
+        }
+
+        canvas.addEventListener('mousedown', handleAction);
+        canvas.addEventListener('touchstart', handleAction, { passive: false });
 
         function hexToRgb(hex) {
             const res = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-            return { r: parseInt(res[1], 16), g: parseInt(res[2], 16), b: parseInt(res[3], 16) };
+            return res ? {
+                r: parseInt(res[1], 16),
+                g: parseInt(res[2], 16),
+                b: parseInt(res[3], 16)
+            } : null;
         }
 
         function floodFill(startX, startY, newColor) {
@@ -186,17 +284,23 @@
 
             const sr = data[pos], sg = data[pos+1], sb = data[pos+2];
 
-            // Ne bojimo ako je crna linija ili već ta boja
-            if (sr < 50 && sg < 50 && sb < 50) return;
+            // LOGIKA PRECIZNOSTI:
+            // 1. Ne bojimo ako je piksel pretaman (to su linije crteža)
+            if (sr < 100 && sg < 100 && sb < 100) return;
+            // 2. Ne bojimo ako je već ta boja
             if (sr === newColor.r && sg === newColor.g && sb === newColor.b) return;
 
             const stack = [[startX, startY]];
+            const targetColor = {r: sr, g: sg, b: sb};
+
             while (stack.length) {
                 const [x, y] = stack.pop();
                 const i = (y * w + x) * 4;
 
                 if (x >= 0 && x < w && y >= 0 && y < h &&
-                    data[i] === sr && data[i+1] === sg && data[i+2] === sb) {
+                    data[i] === targetColor.r && 
+                    data[i+1] === targetColor.g && 
+                    data[i+2] === targetColor.b) {
                     
                     data[i] = newColor.r;
                     data[i+1] = newColor.g;
@@ -209,7 +313,8 @@
             ctx.putImageData(imageData, 0, 0);
         }
 
-        // Dugmad kontrole
+        // --- KONTROLE ---
+
         document.getElementById('upload').onchange = (e) => {
             const file = e.target.files[0];
             if (!file) return;
@@ -225,11 +330,12 @@
         document.getElementById('save').onclick = () => {
             const link = document.createElement('a');
             link.download = 'moje_remek_djelo.png';
-            link.href = canvas.toDataURL();
+            link.href = canvas.toDataURL('image/png');
             link.click();
         };
 
-        init();
+        // Pokretanje
+        window.onload = init;
     </script>
 </body>
 </html>
