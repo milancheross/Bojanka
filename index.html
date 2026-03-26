@@ -21,8 +21,9 @@
             display: block; 
             max-width: 100%; 
             height: auto; 
-            cursor: crosshair;
-            image-rendering: pixelated; /* Pomaže kod oštrine ivica */
+            /* Kursor sa preciznim vrhom (hotspot na 0,32 za kanticu) */
+            cursor: url('https://img.icons8.com/ios-filled/32/000000/fill-color.png') 0 32, crosshair;
+            image-rendering: pixelated;
         }
         .color-btn { width: 45px; height: 45px; border-radius: 50%; border: 3px solid white; transition: 0.2s; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         .color-btn.active { transform: scale(1.25); border-color: #db2777; box-shadow: 0 0 15px rgba(219, 39, 119, 0.4); }
@@ -37,7 +38,7 @@
 
     <header class="text-center mb-8">
         <h1 class="text-5xl font-black text-pink-600 drop-shadow-sm">🎨 BOJANKA</h1>
-        <p class="text-pink-400 font-medium mt-2">Precizno bojenje na svim uređajima!</p>
+        <p class="text-pink-400 font-medium mt-2">Precizno bojenje vrhom kursora!</p>
     </header>
 
     <main class="w-full max-w-6xl flex flex-col lg:flex-row gap-8">
@@ -72,11 +73,10 @@
     </main>
 
     <script>
-        // --- KONFIGURACIJA (GitHub kompatibilna) ---
+        // --- KONFIGURACIJA ---
         const imageFolder = './images/'; 
         const galleryImages = [
-            'pasmacka.jpg',
-            'farma.png',
+            'farma.png', 
             'traktor.png'
         ];
 
@@ -122,8 +122,10 @@
                 gallery.appendChild(btn);
             });
 
-            // Učitaj prvu sliku odmah
-            loadTemplate(imageFolder + galleryImages[0]);
+            // Učitaj prvu dostupnu sliku
+            if (galleryImages.length > 0) {
+                loadTemplate(imageFolder + galleryImages[0]);
+            }
         }
 
         function loadTemplate(src) {
@@ -131,16 +133,12 @@
             img.crossOrigin = "anonymous";
             img.onload = () => {
                 originalImgSrc = src;
-                
-                // Postavljanje fiksne rezolucije platna radi preciznosti
-                // Bez obzira na to koliko je canvas velik na ekranu, on unutra ima ove piksele
                 canvas.width = img.width;
                 canvas.height = img.height;
                 
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 ctx.drawImage(img, 0, 0);
                 
-                // Čišćenje linija (da budu čisto crne i bele)
                 const idata = ctx.getImageData(0,0,canvas.width,canvas.height);
                 const d = idata.data;
                 for(let i=0; i<d.length; i+=4) {
@@ -157,9 +155,7 @@
         // --- PRECIZNO BOJENJE ---
         canvas.addEventListener('click', (e) => {
             const rect = canvas.getBoundingClientRect();
-            
-            // FORMULA ZA PRECIZNOST:
-            // (pozicija_klika - ivica_platna) * (stvarna_sirina_pixela / sirina_na_ekranu)
+            // Izračunavanje tačnog piksela uzimajući u obzir skaliranje
             const x = Math.floor((e.clientX - rect.left) * (canvas.width / rect.width));
             const y = Math.floor((e.clientY - rect.top) * (canvas.height / rect.height));
             
@@ -179,11 +175,12 @@
             const data = imageData.data;
 
             const pos = (startY * w + startX) * 4;
+            if (pos < 0 || pos >= data.length) return;
+
             const startR = data[pos];
             const startG = data[pos+1];
             const startB = data[pos+2];
 
-            // Ne bojimo ako je kliknuto na crnu liniju ili istu boju
             if (startR < 50 && startG < 50 && startB < 50) return;
             if (startR === newColor.r && startG === newColor.g && startB === newColor.b) return;
 
@@ -208,7 +205,6 @@
             ctx.putImageData(imageData, 0, 0);
         }
 
-        // Kontrole
         document.getElementById('upload').onchange = (e) => {
             const reader = new FileReader();
             reader.onload = (ev) => loadTemplate(ev.target.result);
