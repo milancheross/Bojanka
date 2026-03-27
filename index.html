@@ -4,189 +4,268 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>IĆOVA Bojanka</title>
-    <script src="https://cdn.tailwindcss.com"></script>
     <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
         body { 
             background-color: #fdf2f8; 
             font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
             touch-action: none;
             -webkit-user-select: none;
             user-select: none;
-            margin: 0;
-            padding: 0;
             overflow: hidden;
-        }
-        
-        #app-wrapper {
+            height: 100dvh;
             display: flex;
             flex-direction: column;
-            height: 100vh;
         }
 
-        #canvas-container { 
+        /* ===== DESKTOP LAYOUT ===== */
+        #app-wrapper {
+            display: flex;
             flex: 1;
-            background: #eee; 
-            position: relative;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background-image: 
-                linear-gradient(45deg, #f0f0f0 25%, transparent 25%), 
-                linear-gradient(-45deg, #f0f0f0 25%, transparent 25%), 
-                linear-gradient(45deg, transparent 75%, #f0f0f0 75%), 
-                linear-gradient(-45deg, transparent 75%, #f0f0f0 75%);
-            background-size: 20px 20px;
             overflow: hidden;
-            border: 4px solid white;
-            margin: 10px;
-            border-radius: 20px;
-            box-shadow: inset 0 0 20px rgba(0,0,0,0.05);
         }
 
-        canvas { 
-            display: block; 
-            max-width: 100%; 
-            max-height: 100%;
-            cursor: crosshair;
-            image-rendering: auto;
-        }
-
-        .palette-container {
+        /* ===== SIDEBAR LEFT (desktop) ===== */
+        .sidebar-left {
+            width: 200px;
             background: white;
-            padding: 12px;
-            box-shadow: 0 -5px 20px rgba(0,0,0,0.1);
-            z-index: 50;
-        }
-
-        @media (max-width: 1024px) {
-            .palette-container {
-                width: 100%;
-                overflow-x: auto;
-                white-space: nowrap;
-                display: flex;
-                gap: 12px;
-                padding-bottom: 20px;
-                -webkit-overflow-scrolling: touch;
-            }
-            #palette {
-                display: flex;
-                gap: 10px;
-            }
-            .sidebar-tools {
-                display: flex;
-                flex-direction: row;
-                gap: 8px;
-                padding: 10px;
-                background: #fff5f8;
-                overflow-x: auto;
-            }
-            #gallery {
-                display: flex;
-                overflow-x: auto;
-                gap: 10px;
-                padding: 5px;
-            }
-        }
-
-        @media (min-width: 1025px) {
-            #app-wrapper {
-                flex-direction: row;
-            }
-            .sidebar-left {
-                width: 280px;
-                height: 100vh;
-                overflow-y: auto;
-                border-right: 2px solid #fce7f3;
-            }
-            .sidebar-right {
-                width: 130px;
-                height: 100vh;
-                overflow-y: auto;
-                border-left: 2px solid #fce7f3;
-            }
-            #palette {
-                display: grid;
-                grid-template-columns: repeat(2, 1fr);
-                gap: 10px;
-            }
-            #gallery {
-                display: grid;
-                grid-template-columns: 1fr;
-                gap: 12px;
-            }
-        }
-
-        .color-btn { 
-            width: 45px; 
-            height: 45px; 
-            border-radius: 50%; 
-            border: 3px solid white; 
-            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
-            cursor: pointer; 
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            flex-shrink: 0;
-        }
-
-        .color-btn.active { 
-            transform: scale(1.2); 
-            border-color: #db2777; 
-            box-shadow: 0 0 15px rgba(219, 39, 119, 0.4); 
-        }
-
-        .thumb-btn { 
-            width: 100%;
-            min-height: 80px;
-            border: 4px solid white; 
-            border-radius: 15px; 
-            overflow: hidden; 
-            background: #f9f9f9; 
-            flex-shrink: 0;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-            transition: 0.2s;
-            position: relative;
+            border-right: 2px solid #fce7f3;
             display: flex;
-            align-items: center;
-            justify-content: center;
+            flex-direction: column;
+            padding: 12px;
+            gap: 10px;
+            overflow-y: auto;
         }
 
-        @media (max-width: 1024px) {
-            .thumb-btn { width: 120px; height: 90px; }
-        }
-
-        .thumb-btn:active { transform: scale(0.95); }
-        .thumb-btn img { width: 100%; height: 100%; object-fit: contain; }
-        
-        .thumb-label {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: rgba(255,255,255,0.9);
-            font-size: 11px;
-            font-weight: 800;
+        .sidebar-title {
             text-align: center;
-            padding: 4px;
-            color: #be185d;
+        }
+        .sidebar-title h1 {
+            font-size: 20px;
+            font-weight: 900;
+            color: #db2777;
+        }
+        .sidebar-title p {
+            font-size: 10px;
+            color: #f9a8d4;
+            font-weight: 700;
+            letter-spacing: 2px;
             text-transform: uppercase;
         }
 
+        .tools-row {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
         .btn-control {
-            padding: 10px;
-            border-radius: 12px;
+            padding: 9px;
+            border-radius: 10px;
             font-weight: 800;
-            font-size: 12px;
+            font-size: 11px;
             text-align: center;
             text-transform: uppercase;
             color: white;
             cursor: pointer;
-            transition: 0.2s;
-            flex: 1;
-            min-width: 80px;
-            box-shadow: 0 4px 0 rgba(0,0,0,0.1);
+            border: none;
+            box-shadow: 0 3px 0 rgba(0,0,0,0.15);
+            transition: 0.15s;
+        }
+        .btn-control:active { transform: translateY(2px); box-shadow: 0 1px 0 rgba(0,0,0,0.15); }
+
+        .gallery-section h2 {
+            font-size: 11px;
+            font-weight: 900;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
         }
 
-        .btn-control:active { transform: translateY(2px); box-shadow: 0 2px 0 rgba(0,0,0,0.1); }
+        #gallery {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
 
+        .thumb-btn {
+            width: 100%;
+            height: 80px;
+            border: 3px solid white;
+            border-radius: 12px;
+            overflow: hidden;
+            background: #f9f9f9;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+            transition: 0.2s;
+            position: relative;
+            cursor: pointer;
+        }
+        .thumb-btn:active { transform: scale(0.96); }
+        .thumb-btn img { width: 100%; height: 100%; object-fit: contain; }
+        .thumb-label {
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            background: rgba(255,255,255,0.92);
+            font-size: 10px;
+            font-weight: 800;
+            text-align: center;
+            padding: 3px;
+            color: #be185d;
+            text-transform: uppercase;
+        }
+
+        /* ===== CANVAS AREA ===== */
+        #canvas-container {
+            flex: 1;
+            background-image: 
+                linear-gradient(45deg, #e8e8e8 25%, transparent 25%), 
+                linear-gradient(-45deg, #e8e8e8 25%, transparent 25%), 
+                linear-gradient(45deg, transparent 75%, #e8e8e8 75%), 
+                linear-gradient(-45deg, transparent 75%, #e8e8e8 75%);
+            background-size: 20px 20px;
+            background-color: #f0f0f0;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        canvas {
+            display: block;
+            max-width: 100%;
+            max-height: 100%;
+            cursor: crosshair;
+        }
+
+        /* ===== SIDEBAR RIGHT — COLORS (desktop) ===== */
+        .sidebar-right {
+            width: 100px;
+            background: white;
+            border-left: 2px solid #fce7f3;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 12px 8px;
+            gap: 8px;
+            overflow-y: auto;
+        }
+
+        .sidebar-right h2 {
+            font-size: 10px;
+            font-weight: 900;
+            color: #f9a8d4;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        #palette-desktop {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            width: 100%;
+        }
+
+        /* ===== MOBILE BOTTOM BAR ===== */
+        #mobile-bottom {
+            display: none;
+            flex-direction: column;
+            background: white;
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.12);
+            z-index: 100;
+            padding-bottom: env(safe-area-inset-bottom, 0px);
+        }
+
+        /* Mobile tools row */
+        #mobile-tools {
+            display: flex;
+            gap: 6px;
+            padding: 8px 10px 4px;
+        }
+
+        #mobile-tools .btn-control {
+            flex: 1;
+            font-size: 10px;
+            padding: 7px 4px;
+        }
+
+        /* Mobile gallery strip */
+        #mobile-gallery-strip {
+            display: flex;
+            gap: 8px;
+            padding: 4px 10px;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+        #mobile-gallery-strip::-webkit-scrollbar { display: none; }
+
+        .thumb-mobile {
+            flex-shrink: 0;
+            width: 65px;
+            height: 50px;
+            border: 2px solid #fce7f3;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #fdf2f8;
+            position: relative;
+            cursor: pointer;
+        }
+        .thumb-mobile img { width: 100%; height: 100%; object-fit: contain; }
+        .thumb-mobile span {
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            background: rgba(255,255,255,0.9);
+            font-size: 8px;
+            font-weight: 800;
+            text-align: center;
+            color: #be185d;
+            text-transform: uppercase;
+            padding: 1px;
+        }
+
+        /* ===== COLOR PALETTE — shared styles ===== */
+        .color-btn { 
+            width: 38px; 
+            height: 38px; 
+            border-radius: 50%; 
+            border: 3px solid white; 
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+            cursor: pointer; 
+            box-shadow: 0 3px 6px rgba(0,0,0,0.15);
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+        }
+        .color-btn.active { 
+            transform: scale(1.25); 
+            border-color: #db2777; 
+            box-shadow: 0 0 0 3px rgba(219,39,119,0.3); 
+        }
+
+        /* Mobile color strip */
+        #mobile-color-strip {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 12px 10px;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scroll-behavior: smooth;
+            scrollbar-width: none;
+        }
+        #mobile-color-strip::-webkit-scrollbar { display: none; }
+
+        #mobile-color-strip .color-btn {
+            width: 42px;
+            height: 42px;
+        }
+
+        /* Loading overlay */
         #loading-overlay {
             position: absolute;
             inset: 0;
@@ -197,146 +276,206 @@
             justify-content: center;
             z-index: 100;
         }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 768px) {
+            .sidebar-left, .sidebar-right { display: none; }
+            #mobile-bottom { display: flex; }
+            body { overflow: hidden; }
+        }
     </style>
 </head>
 <body>
 
+<!-- ===== DESKTOP APP WRAPPER ===== -->
 <div id="app-wrapper">
-    
-    <aside class="sidebar-left bg-white p-4 flex flex-col gap-4">
-        <div class="hidden lg:block text-center mb-2">
-            <h1 class="text-3xl font-black text-pink-600 drop-shadow-sm">🎨Ićova bojanka</h1>
-            <p class="text-xs text-pink-400 font-bold tracking-widest uppercase"> by Milo</p>
+
+    <!-- Sidebar Left: title + tools + gallery -->
+    <aside class="sidebar-left">
+        <div class="sidebar-title">
+            <h1>🎨 Ićova bojanka</h1>
+            <p>by Milo</p>
         </div>
 
-        <div class="sidebar-tools flex flex-wrap gap-2">
-            <button id="undo" class="btn-control bg-gray-500">↩️ Nazad</button>
-            <button id="reset" class="btn-control bg-orange-400">✨ Očisti</button>
-            <button id="save" class="btn-control bg-emerald-500">💾 Sačuvaj</button>
+        <div class="tools-row">
+            <button id="undo-d" class="btn-control" style="background:#6b7280">↩️ Nazad</button>
+            <button id="reset-d" class="btn-control" style="background:#f97316">✨ Očisti</button>
+            <button id="save-d" class="btn-control" style="background:#10b981">💾 Sačuvaj</button>
         </div>
 
-        <div class="flex-1 overflow-hidden flex flex-col">
-            <h2 class="font-black text-gray-700 mb-2 text-sm uppercase flex items-center gap-2">
-                <span class="text-lg">🖼️</span> Galerija slika
-            </h2>
-            <div id="gallery" class="overflow-y-auto pr-2">
-                <!-- Slike iz tvog foldera /images/ -->
-            </div>
+        <div class="gallery-section">
+            <h2>🖼️ Galerija</h2>
+            <div id="gallery"></div>
         </div>
     </aside>
 
+    <!-- Canvas -->
     <main id="canvas-container">
-        <div id="loading-overlay">
-            <div class="animate-bounce text-5xl mb-4">🖍️</div>
-            <span class="font-black text-pink-600 text-xl uppercase tracking-tighter text-center">Učitavam crtež...<br><small class="text-xs text-pink-300">Proveri folder /images/</small></span>
+        <div id="loading-overlay" style="display:none;flex-direction:column;align-items:center;justify-content:center;">
+            <div style="font-size:48px;animation:bounce 0.8s infinite alternate">🖍️</div>
+            <span style="font-weight:900;color:#db2777;font-size:18px;text-transform:uppercase;margin-top:12px">Učitavam...</span>
         </div>
         <canvas id="canvas"></canvas>
     </main>
 
-    <aside class="palette-container sidebar-right flex lg:flex-col items-center">
-        <h2 class="hidden lg:block font-black text-pink-400 text-xs mb-4 uppercase">Boje</h2>
-        <div id="palette"></div>
+    <!-- Sidebar Right: color palette -->
+    <aside class="sidebar-right">
+        <h2>Boje</h2>
+        <div id="palette-desktop"></div>
     </aside>
 
 </div>
 
+<!-- ===== MOBILE BOTTOM BAR ===== -->
+<div id="mobile-bottom">
+    <!-- Tools + gallery -->
+    <div id="mobile-tools">
+        <button id="undo-m" class="btn-control" style="background:#6b7280">↩️ Nazad</button>
+        <button id="reset-m" class="btn-control" style="background:#f97316">✨ Očisti</button>
+        <button id="save-m" class="btn-control" style="background:#10b981">💾 Sačuvaj</button>
+    </div>
+
+    <!-- Gallery strip -->
+    <div id="mobile-gallery-strip"></div>
+
+    <!-- Color strip — horizontal scroll, always visible -->
+    <div id="mobile-color-strip"></div>
+</div>
+
+<style>
+@keyframes bounce {
+    from { transform: translateY(0); }
+    to { transform: translateY(-10px); }
+}
+</style>
+
 <script>
-    // Popis slika. Provjeri jesu li nazivi datoteka točno ovakvi u tvom folderu /images/
     const galleryItems = [
-        { name: 'Traktor', src: './images/traktor.png' },
-        { name: 'Farma', src: './images/farma.png' },
+        { name: 'Traktor',   src: './images/traktor.png' },
+        { name: 'Farma',     src: './images/farma.png' },
         { name: 'Pas i mačka', src: './images/pasmacka.jpg' },
-        { name: 'Pinokio', src: './images/pinokio.jpg' }
+        { name: 'Pinokio',   src: './images/pinokio.jpg' }
     ];
 
     const colors = [
-        '#ffffff', 
-        '#ff4757', '#ff6b81', '#ff7f50', '#ffb142', '#f1c40f', '#eccc68', '#f9ca24',
-        '#2ed573', '#7bed9f', '#1abc9c', '#1dd1a1', '#10ac84', '#05c46b', '#0be881',
-        '#1e90ff', '#70a1ff', '#5352ed', '#3498db', '#2980b9', '#4834d4', '#686de0',
-        '#a29bfe', '#9b59b6', '#8e44ad', '#6c5ce7', '#e056fd', '#be2edd', '#ff9ff3',
-        '#f8a5c2', '#e66767', '#cf6a87', '#95afc0', '#576574', '#2f3542', '#000000'
+        '#ffffff',
+        '#ff4757','#ff6b81','#ff7f50','#ffb142','#f1c40f','#f9ca24',
+        '#2ed573','#7bed9f','#1abc9c','#10ac84','#05c46b',
+        '#1e90ff','#70a1ff','#5352ed','#3498db','#4834d4','#686de0',
+        '#a29bfe','#9b59b6','#8e44ad','#e056fd','#be2edd','#ff9ff3',
+        '#f8a5c2','#e66767','#cf6a87','#95afc0','#576574','#2f3542','#000000'
     ];
 
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d', { willReadFrequently: true });
     const loadingOverlay = document.getElementById('loading-overlay');
-    
+
     let activeColor = colors[1];
     let currentImageSrc = '';
     let history = [];
 
-    function init() {
-        const palette = document.getElementById('palette');
-        colors.forEach((color) => {
-            const btn = document.createElement('div');
-            btn.className = `color-btn ${color === activeColor ? 'active' : ''}`;
-            if(color === '#ffffff') btn.innerHTML = '<span style="font-size:12px">🧽</span>';
-            btn.style.backgroundColor = color;
-            btn.style.display = 'flex';
-            btn.style.alignItems = 'center';
-            btn.style.justifyContent = 'center';
-            
-            btn.onclick = () => {
-                document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                activeColor = color;
-            };
-            palette.appendChild(btn);
+    // ---- Build color button ----
+    function makeColorBtn(color) {
+        const btn = document.createElement('div');
+        btn.className = 'color-btn' + (color === activeColor ? ' active' : '');
+        btn.style.backgroundColor = color;
+        if (color === '#ffffff') btn.textContent = '🧽';
+        btn.addEventListener('pointerdown', (e) => {
+            e.stopPropagation();
+            document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+            // Activate all buttons with same color
+            document.querySelectorAll('.color-btn').forEach(b => {
+                if (b.dataset.color === color) b.classList.add('active');
+            });
+            activeColor = color;
         });
+        btn.dataset.color = color;
+        return btn;
+    }
 
+    function init() {
+        // Desktop palette
+        const palDeskop = document.getElementById('palette-desktop');
+        colors.forEach(color => palDeskop.appendChild(makeColorBtn(color)));
+
+        // Mobile color strip
+        const palMobile = document.getElementById('mobile-color-strip');
+        colors.forEach(color => palMobile.appendChild(makeColorBtn(color)));
+
+        // Desktop gallery
         const gallery = document.getElementById('gallery');
         galleryItems.forEach(item => {
             const btn = document.createElement('button');
             btn.className = 'thumb-btn';
             btn.onclick = () => loadTemplate(item.src);
-            
             const img = document.createElement('img');
             img.src = item.src;
-            img.onerror = () => {
-                // Ako slika ne postoji u folderu, koristi se placeholder
-                img.src = `https://placehold.co/200x150/fdf2f8/db2777?text=${encodeURIComponent(item.name)}`;
-                console.warn(`Slika ${item.src} nije pronađena. Provjerite folder /images/`);
-            };
-            
+            img.onerror = () => img.src = `https://placehold.co/200x150/fdf2f8/db2777?text=${encodeURIComponent(item.name)}`;
             const label = document.createElement('div');
             label.className = 'thumb-label';
             label.innerText = item.name;
-            
             btn.appendChild(img);
             btn.appendChild(label);
             gallery.appendChild(btn);
         });
 
-        if(galleryItems.length > 0) loadTemplate(galleryItems[0].src);
+        // Mobile gallery strip
+        const mGallery = document.getElementById('mobile-gallery-strip');
+        galleryItems.forEach(item => {
+            const btn = document.createElement('div');
+            btn.className = 'thumb-mobile';
+            btn.onclick = () => loadTemplate(item.src);
+            const img = document.createElement('img');
+            img.src = item.src;
+            img.onerror = () => img.src = `https://placehold.co/130x100/fdf2f8/db2777?text=${encodeURIComponent(item.name)}`;
+            const span = document.createElement('span');
+            span.textContent = item.name;
+            btn.appendChild(img);
+            btn.appendChild(span);
+            mGallery.appendChild(btn);
+        });
+
+        if (galleryItems.length > 0) loadTemplate(galleryItems[0].src);
+
+        // Buttons
+        ['undo-d','undo-m'].forEach(id => document.getElementById(id).onclick = undo);
+        ['reset-d','reset-m'].forEach(id => document.getElementById(id).onclick = () => { if (currentImageSrc) loadTemplate(currentImageSrc); });
+        ['save-d','save-m'].forEach(id => document.getElementById(id).onclick = saveImg);
     }
 
     function saveToHistory() {
-        if (history.length > 15) history.shift();
+        if (history.length > 20) history.shift();
         history.push(ctx.getImageData(0, 0, canvas.width, canvas.height));
+    }
+
+    function undo() {
+        if (history.length > 1) {
+            history.pop();
+            ctx.putImageData(history[history.length - 1], 0, 0);
+        }
+    }
+
+    function saveImg() {
+        const link = document.createElement('a');
+        link.download = 'bojanka_rad.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
     }
 
     function loadTemplate(src) {
         loadingOverlay.style.display = 'flex';
         const img = new Image();
-        
         img.onload = () => {
             currentImageSrc = src;
             canvas.width = img.width;
             canvas.height = img.height;
-            
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.drawImage(img, 0, 0);
-            
-            const idata = ctx.getImageData(0,0,canvas.width,canvas.height);
+            const idata = ctx.getImageData(0, 0, canvas.width, canvas.height);
             const d = idata.data;
-            for(let i=0; i<d.length; i+=4) {
-                const avg = (d[i]+d[i+1]+d[i+2])/3;
-                if(avg > 150) {
-                    d[i] = d[i+1] = d[i+2] = 255;
-                } else {
-                    d[i] = d[i+1] = d[i+2] = 0;
-                }
+            for (let i = 0; i < d.length; i += 4) {
+                const avg = (d[i] + d[i+1] + d[i+2]) / 3;
+                d[i] = d[i+1] = d[i+2] = avg > 150 ? 255 : 0;
                 d[i+3] = 255;
             }
             ctx.putImageData(idata, 0, 0);
@@ -344,95 +483,61 @@
             saveToHistory();
             loadingOverlay.style.display = 'none';
         };
-
         img.onerror = () => {
-            // Ako glavna slika ne uspije, probaj generirati bijelu površinu za crtanje
-            console.error("Greška pri učitavanju: " + src);
-            canvas.width = 800;
-            canvas.height = 600;
-            ctx.fillStyle = "white";
+            canvas.width = 800; canvas.height = 600;
+            ctx.fillStyle = 'white';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             loadingOverlay.style.display = 'none';
         };
         img.src = src;
     }
 
-    function handleAction(e) {
-        if (e.type === 'touchstart') e.preventDefault();
+    // ---- Canvas interaction — pointer events (works on touch AND mouse) ----
+    function getCanvasPos(e) {
         const rect = canvas.getBoundingClientRect();
-        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-        
+        const touch = e.changedTouches ? e.changedTouches[0] : e;
         const scaleX = canvas.width / rect.width;
         const scaleY = canvas.height / rect.height;
-        
-        const x = Math.floor((clientX - rect.left) * scaleX);
-        const y = Math.floor((clientY - rect.top) * scaleY);
-        
+        return {
+            x: Math.floor((touch.clientX - rect.left) * scaleX),
+            y: Math.floor((touch.clientY - rect.top) * scaleY)
+        };
+    }
+
+    canvas.addEventListener('pointerdown', (e) => {
+        e.preventDefault();
+        const { x, y } = getCanvasPos(e);
         const fillRGB = hexToRgb(activeColor);
         if (fillRGB) {
             saveToHistory();
             floodFill(x, y, fillRGB);
         }
-    }
-
-    canvas.addEventListener('mousedown', handleAction);
-    canvas.addEventListener('touchstart', handleAction, { passive: false });
+    });
 
     function hexToRgb(hex) {
         const res = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-        return res ? { r: parseInt(res[1], 16), g: parseInt(res[2], 16), b: parseInt(res[3], 16) } : null;
+        return res ? { r: parseInt(res[1],16), g: parseInt(res[2],16), b: parseInt(res[3],16) } : null;
     }
 
     function floodFill(startX, startY, newColor) {
         const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        const w = imageData.width;
-        const h = imageData.height;
-        const data = imageData.data;
+        const { width: w, height: h, data } = imageData;
         const pos = (startY * w + startX) * 4;
-        
         if (pos < 0 || pos >= data.length) return;
-        
         const sr = data[pos], sg = data[pos+1], sb = data[pos+2];
         if (sr < 50 && sg < 50 && sb < 50) return;
         if (sr === newColor.r && sg === newColor.g && sb === newColor.b) return;
-
         const stack = [[startX, startY]];
-        const targetColor = {r: sr, g: sg, b: sb};
-
         while (stack.length) {
-            const [currX, currY] = stack.pop();
-            const i = (currY * w + currX) * 4;
-
-            if (currX >= 0 && currX < w && currY >= 0 && currY < h &&
-                data[i] === targetColor.r && data[i+1] === targetColor.g && data[i+2] === targetColor.b) {
-                
-                data[i] = newColor.r; 
-                data[i+1] = newColor.g; 
-                data[i+2] = newColor.b; 
-                data[i+3] = 255;
-                
-                stack.push([currX + 1, currY], [currX - 1, currY], [currX, currY + 1], [currX, currY - 1]);
-            }
+            const [cx, cy] = stack.pop();
+            const i = (cy * w + cx) * 4;
+            if (cx < 0 || cx >= w || cy < 0 || cy >= h) continue;
+            if (data[i] !== sr || data[i+1] !== sg || data[i+2] !== sb) continue;
+            data[i] = newColor.r; data[i+1] = newColor.g; data[i+2] = newColor.b; data[i+3] = 255;
+            stack.push([cx+1,cy],[cx-1,cy],[cx,cy+1],[cx,cy-1]);
         }
         ctx.putImageData(imageData, 0, 0);
     }
-
-    document.getElementById('undo').onclick = () => {
-        if (history.length > 1) {
-            history.pop();
-            ctx.putImageData(history[history.length - 1], 0, 0);
-        }
-    };
-    
-    document.getElementById('reset').onclick = () => { if (currentImageSrc) loadTemplate(currentImageSrc); };
-    
-    document.getElementById('save').onclick = () => {
-        const link = document.createElement('a');
-        link.download = 'bojanka_rad.png';
-        link.href = canvas.toDataURL('image/png');
-        link.click();
-    };
 
     window.onload = init;
 </script>
