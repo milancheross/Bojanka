@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="bs">
+<html lang="sr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -8,17 +8,24 @@
     <style>
         body { 
             background-color: #fdf2f8; 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            touch-action: none; /* Sprečava skrolovanje prstom dok se boji */
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+            touch-action: none;
             -webkit-user-select: none;
             user-select: none;
+            margin: 0;
+            padding: 0;
+            overflow: hidden; /* Sprečavamo skrolovanje celog body-ja */
         }
+        
+        #app-wrapper {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
         #canvas-container { 
+            flex: 1;
             background: #eee; 
-            border-radius: 24px; 
-            box-shadow: 0 20px 50px rgba(0,0,0,0.15); 
-            overflow: hidden; 
-            border: 8px solid white;
             position: relative;
             display: flex;
             align-items: center;
@@ -29,312 +36,378 @@
                 linear-gradient(45deg, transparent 75%, #f0f0f0 75%), 
                 linear-gradient(-45deg, transparent 75%, #f0f0f0 75%);
             background-size: 20px 20px;
-            background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+            overflow: hidden;
+            border: 4px solid white;
+            margin: 10px;
+            border-radius: 20px;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.05);
         }
+
         canvas { 
             display: block; 
             max-width: 100%; 
-            max-height: 70vh;
-            height: auto; 
-            cursor: crosshair; /* Precizni krstić za desktop */
+            max-height: 100%;
+            cursor: crosshair;
             image-rendering: pixelated;
         }
+
+        /* PALETA: Mobilni (Fixed Bottom) vs Desktop (Side) */
+        .palette-container {
+            background: white;
+            padding: 12px;
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.1);
+            z-index: 50;
+        }
+
+        @media (max-width: 1024px) {
+            .palette-container {
+                width: 100%;
+                overflow-x: auto;
+                white-space: nowrap;
+                display: flex;
+                gap: 12px;
+                padding-bottom: 20px; /* Space for thumb */
+                -webkit-overflow-scrolling: touch;
+            }
+            #palette {
+                display: flex;
+                gap: 10px;
+            }
+            .sidebar-tools {
+                display: flex;
+                flex-direction: row;
+                gap: 8px;
+                padding: 10px;
+                background: #fff5f8;
+                overflow-x: auto;
+            }
+        }
+
+        @media (min-width: 1025px) {
+            #app-wrapper {
+                flex-direction: row;
+            }
+            .sidebar-left {
+                width: 250px;
+                height: 100vh;
+                overflow-y: auto;
+                border-right: 2px solid #fce7f3;
+            }
+            .sidebar-right {
+                width: 120px;
+                height: 100vh;
+                overflow-y: auto;
+                border-left: 2px solid #fce7f3;
+            }
+            #palette {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+            }
+        }
+
         .color-btn { 
-            width: 50px; 
-            height: 50px; 
+            width: 45px; 
+            height: 45px; 
             border-radius: 50%; 
-            border: 4px solid white; 
+            border: 3px solid white; 
             transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
             cursor: pointer; 
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            flex-shrink: 0;
         }
+
         .color-btn.active { 
-            transform: scale(1.3); 
+            transform: scale(1.2); 
             border-color: #db2777; 
-            box-shadow: 0 0 20px rgba(219, 39, 119, 0.5); 
-            z-index: 10;
+            box-shadow: 0 0 15px rgba(219, 39, 119, 0.4); 
         }
+
         .thumb-btn { 
-            width: 100%; 
-            aspect-ratio: 1; 
-            border: 4px solid white; 
-            border-radius: 18px; 
+            width: 80px;
+            height: 80px;
+            border: 3px solid white; 
+            border-radius: 12px; 
             overflow: hidden; 
-            transition: 0.3s; 
             background: white; 
-            padding: 0;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            flex-shrink: 0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
-        .thumb-btn:hover { 
-            border-color: #f472b6; 
-            transform: translateY(-4px); 
+
+        .btn-control {
+            padding: 10px;
+            border-radius: 12px;
+            font-weight: 800;
+            font-size: 12px;
+            text-align: center;
+            text-transform: uppercase;
+            color: white;
+            cursor: pointer;
+            transition: 0.2s;
+            flex: 1;
+            min-width: 80px;
         }
-        .thumb-btn img { width: 100%; height: 100%; object-fit: cover; }
-        
-        /* Custom Scrollbar */
-        #gallery::-webkit-scrollbar { width: 6px; }
-        #gallery::-webkit-scrollbar-thumb { background: #f9a8d4; border-radius: 10px; }
-        
-        .btn-action {
-            transition: all 0.2s;
-            display: flex;
+
+        #loading-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(255,255,255,0.8);
+            display: none;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 8px;
+            z-index: 100;
         }
-        .btn-action:active { transform: scale(0.95); }
     </style>
 </head>
-<body class="p-4 md:p-8 flex flex-col items-center min-h-screen">
+<body>
 
-    <header class="text-center mb-6">
-        <h1 class="text-5xl md:text-6xl font-black text-pink-600 drop-shadow-md tracking-tight">🎨 IĆOVA BOJANKA</h1>
-        <p class="text-pink-400 font-bold mt-2 uppercase tracking-widest text-sm">Precizno bojenje krstićem!</p>
-    </header>
+<div id="app-wrapper">
+    
+    <!-- LEVA STRANA: KOLEKCIJA I ALATI -->
+    <aside class="sidebar-left bg-white p-4 flex flex-col gap-4">
+        <div class="hidden lg:block text-center mb-4">
+            <h1 class="text-2xl font-black text-pink-600">🎨 IĆOVA BOJANKA</h1>
+        </div>
 
-    <main class="w-full max-w-7xl flex flex-col lg:flex-row gap-8 items-start">
-        
-        <!-- LIJEVA STRANA: GALERIJA -->
-        <aside class="w-full lg:w-1/5 flex flex-col gap-4 order-2 lg:order-1">
-            <div class="bg-white p-5 rounded-3xl shadow-2xl border border-pink-100">
-                <h2 class="font-black text-gray-700 mb-4 text-center text-lg border-b-2 border-pink-50 pb-2">🖼️ KOLEKCIJA</h2>
-                <div id="gallery" class="grid grid-cols-4 lg:grid-cols-2 gap-3 max-h-[300px] lg:max-h-[500px] overflow-y-auto p-1">
-                    <!-- Slike se generišu ovde -->
-                </div>
+        <div class="sidebar-tools flex flex-wrap gap-2">
+            <button id="undo" class="btn-control bg-gray-500 hover:bg-gray-600">↩️ Nazad</button>
+            <button id="reset" class="btn-control bg-orange-400 hover:bg-orange-500">✨ Očisti</button>
+            <button id="save" class="btn-control bg-emerald-500 hover:bg-emerald-600">💾 Sačuvaj</button>
+            <label class="btn-control bg-pink-500 hover:bg-pink-600">
+                ➕ Slika
+                <input type="file" id="upload" class="hidden" accept="image/*">
+            </label>
+        </div>
+
+        <div class="mt-2">
+            <h2 class="font-black text-gray-700 mb-2 text-sm uppercase">🖼️ Kolekcija</h2>
+            <div id="gallery" class="flex lg:grid lg:grid-cols-2 gap-2 overflow-x-auto lg:overflow-visible pb-2">
+                <!-- Slike se generišu ovde -->
             </div>
+        </div>
+    </aside>
 
-            <div class="flex flex-col gap-3">
-                <label class="btn-action w-full bg-pink-500 hover:bg-pink-600 text-white py-4 rounded-2xl font-black cursor-pointer shadow-lg">
-                    <span>➕ TVOJA SLIKA</span>
-                    <input type="file" id="upload" class="hidden" accept="image/*">
-                </label>
-                <button id="reset" class="btn-action w-full bg-orange-400 hover:bg-orange-500 text-white py-4 rounded-2xl font-black shadow-lg">✨ OČISTI SVE</button>
-                <button id="save" class="btn-action w-full bg-emerald-500 hover:bg-emerald-600 text-white py-4 rounded-2xl font-black shadow-lg">💾 SAČUVAJ RAD</button>
-            </div>
-        </aside>
-
-        <!-- CENTAR: PLATNO -->
-        <section id="canvas-container" class="w-full lg:w-3/5 order-1 lg:order-2">
-            <canvas id="canvas"></canvas>
-            <div id="loading-overlay" class="absolute inset-0 bg-white/80 flex items-center justify-center hidden rounded-2xl">
-                <div class="animate-bounce text-4xl">🖌️</div>
-            </div>
-        </section>
-
-        <!-- DESNA STRANA: PALETA -->
-        <aside class="w-full lg:w-auto bg-white p-6 rounded-3xl shadow-2xl border border-pink-100 order-3">
-            <h2 class="font-black text-center text-pink-400 text-xs mb-4 tracking-tighter uppercase">Izaberi Boju</h2>
-            <div id="palette" class="grid grid-cols-8 lg:grid-cols-2 gap-4 justify-items-center"></div>
-        </aside>
-
+    <!-- CENTAR: PLATNO -->
+    <main id="canvas-container">
+        <div id="loading-overlay">
+            <div class="animate-spin text-4xl mb-2">🖌️</div>
+            <span class="font-bold text-pink-500">Spremam crtež...</span>
+        </div>
+        <canvas id="canvas"></canvas>
     </main>
 
-    <footer class="mt-8 text-pink-300 font-medium text-sm">
-        Savjet: Koristi krstić da naciljaš bijela polja unutar crteža!
-    </footer>
+    <!-- DESNA STRANA: PALETA BOJA (Na mobilnom dnu) -->
+    <aside class="palette-container sidebar-right flex lg:flex-col items-center">
+        <h2 class="hidden lg:block font-black text-pink-400 text-xs mb-4 uppercase">Boje</h2>
+        <div id="palette">
+            <!-- Boje se generišu ovde -->
+        </div>
+    </aside>
 
-    <script>
-        // --- KONFIGURACIJA ---
-        const imageFolder = './images/'; 
-        const galleryImages = [
-            'farma.png', 
-            'traktor.png',
-            'pinokio.jpg'
-        ];
+</div>
 
-        const colors = [
-            '#ff4757', '#2ed573', '#1e90ff', '#ffa502', '#ffffff', 
-            '#2f3542', '#a29bfe', '#ff7f50', '#70a1ff', '#5352ed',
-            '#eccc68', '#ff6b81', '#7bed9f', '#ced6e0', '#f1c40f',
-            '#e67e22', '#e74c3c', '#9b59b6', '#1abc9c', '#34495e'
-        ];
+<script>
+    // --- KONFIGURACIJA ---
+    const galleryImages = [
+        'farma.png', 'traktor.png', 'lav.png', 'auto.png', 'slon.png', 'kuca.png'
+    ];
 
-        const canvas = document.getElementById('canvas');
-        const ctx = canvas.getContext('2d', { willReadFrequently: true });
-        const loadingOverlay = document.getElementById('loading-overlay');
-        let activeColor = colors[0];
-        let currentImageSrc = '';
+    const colors = [
+        '#ffffff', // Gumica/Bela
+        '#ff4757', '#ff6b81', '#ff7f50', '#ffb142', '#f1c40f', '#eccc68', '#f9ca24',
+        '#2ed573', '#7bed9f', '#1abc9c', '#1dd1a1', '#10ac84', '#05c46b', '#0be881',
+        '#1e90ff', '#70a1ff', '#5352ed', '#3498db', '#2980b9', '#4834d4', '#686de0',
+        '#a29bfe', '#9b59b6', '#8e44ad', '#6c5ce7', '#e056fd', '#be2edd', '#ff9ff3',
+        '#f8a5c2', '#e66767', '#cf6a87', '#95afc0', '#576574', '#2f3542', '#000000',
+        '#d2dae2', '#808e9b', '#4b4b4b', '#2c3e50'
+    ];
 
-        function init() {
-            // Generisanje palete
-            const palette = document.getElementById('palette');
-            colors.forEach((color, i) => {
-                const btn = document.createElement('div');
-                btn.className = `color-btn ${i === 0 ? 'active' : ''}`;
-                btn.style.backgroundColor = color;
-                btn.onclick = () => {
-                    document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
-                    btn.classList.add('active');
-                    activeColor = color;
-                };
-                palette.appendChild(btn);
-            });
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+    const loadingOverlay = document.getElementById('loading-overlay');
+    
+    let activeColor = colors[1]; // Crvena po defaultu
+    let currentImageSrc = '';
+    let history = []; // Za Undo funkcionalnost
 
-            // Generisanje galerije
-            const gallery = document.getElementById('gallery');
-            galleryImages.forEach(name => {
-                const path = imageFolder + name;
-                const btn = document.createElement('button');
-                btn.className = 'thumb-btn';
-                btn.onclick = () => loadTemplate(path);
-                
-                const img = document.createElement('img');
-                // Ako fajl ne postoji lokalno, koristi generisani placeholder za demo
-                img.src = path;
-                img.onerror = () => { 
-                    img.src = `https://placehold.co/200x200/white/black?text=${name.split('.')[0]}`; 
-                };
-                
-                btn.appendChild(img);
-                gallery.appendChild(btn);
-            });
-
-            // Učitaj prvu sliku
-            loadTemplate(imageFolder + galleryImages[0]);
-        }
-
-        function loadTemplate(src) {
-            loadingOverlay.classList.remove('hidden');
-            const img = new Image();
-            img.crossOrigin = "anonymous";
+    function init() {
+        // Generisanje palete
+        const palette = document.getElementById('palette');
+        colors.forEach((color, i) => {
+            const btn = document.createElement('div');
+            btn.className = `color-btn ${color === activeColor ? 'active' : ''}`;
+            if(color === '#ffffff') btn.innerHTML = '🧽';
+            btn.style.backgroundColor = color;
+            btn.style.display = 'flex';
+            btn.style.alignItems = 'center';
+            btn.style.justifyContent = 'center';
+            btn.style.fontSize = '20px';
             
-            img.onload = () => {
-                currentImageSrc = src;
-                
-                // Postavljanje rezolucije na osnovu slike
-                canvas.width = img.width;
-                canvas.height = img.height;
-                
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                ctx.drawImage(img, 0, 0);
-                
-                // Obrada slike: Čišćenje u čisto crno-bijelu za bolji floodFill
-                const idata = ctx.getImageData(0,0,canvas.width,canvas.height);
-                const d = idata.data;
-                for(let i=0; i<d.length; i+=4) {
-                    const avg = (d[i]+d[i+1]+d[i+2])/3;
-                    // Ako je skoro bijelo (>200), postavi na čisto bijelo, inače na crno
-                    const v = avg > 200 ? 255 : 0; 
-                    d[i] = d[i+1] = d[i+2] = v;
-                    d[i+3] = 255;
-                }
-                ctx.putImageData(idata, 0, 0);
-                loadingOverlay.classList.add('hidden');
+            btn.onclick = () => {
+                document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                activeColor = color;
             };
+            palette.appendChild(btn);
+        });
 
-            img.onerror = () => {
-                // Ako slika ne postoji, napravi prazno platno sa okvirom
-                canvas.width = 800;
-                canvas.height = 600;
-                ctx.fillStyle = "white";
-                ctx.fillRect(0,0,800,600);
-                ctx.strokeStyle = "black";
-                ctx.lineWidth = 10;
-                ctx.strokeRect(50,50,700,500);
-                ctx.font = "30px Arial";
-                ctx.fillStyle = "black";
-                ctx.fillText("Nacrtaj nešto ili dodaj sliku!", 220, 300);
-                loadingOverlay.classList.add('hidden');
-            };
+        // Generisanje galerije
+        const gallery = document.getElementById('gallery');
+        galleryImages.forEach(name => {
+            const btn = document.createElement('button');
+            btn.className = 'thumb-btn';
+            btn.onclick = () => loadTemplate(`https://placehold.co/600x600/white/black?text=${name.split('.')[0]}`);
+            
+            const img = document.createElement('img');
+            img.src = `https://placehold.co/100x100/white/black?text=${name[0]}`;
+            img.className = "w-full h-full object-cover";
+            
+            btn.appendChild(img);
+            gallery.appendChild(btn);
+        });
 
-            img.src = src;
-        }
+        // Učitaj prvi demo
+        loadTemplate('https://placehold.co/800x600/white/black?text=BOJANKA+IGRA');
+    }
 
-        // --- PRECIZNO BOJENJE (MOUSE & TOUCH) ---
+    function saveToHistory() {
+        if (history.length > 10) history.shift();
+        history.push(ctx.getImageData(0, 0, canvas.width, canvas.height));
+    }
 
-        function handleAction(e) {
-            if (e.type === 'touchstart') e.preventDefault();
-
-            const rect = canvas.getBoundingClientRect();
-            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-
-            // Skaliranje koordinata (procentualno u odnosu na CSS veličinu)
-            const scaleX = canvas.width / rect.width;
-            const scaleY = canvas.height / rect.height;
-
-            const x = Math.floor((clientX - rect.left) * scaleX);
-            const y = Math.floor((clientY - rect.top) * scaleY);
-
-            const fillRGB = hexToRgb(activeColor);
-            if (fillRGB) floodFill(x, y, fillRGB);
-        }
-
-        canvas.addEventListener('mousedown', handleAction);
-        canvas.addEventListener('touchstart', handleAction, { passive: false });
-
-        function hexToRgb(hex) {
-            const res = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-            return res ? {
-                r: parseInt(res[1], 16),
-                g: parseInt(res[2], 16),
-                b: parseInt(res[3], 16)
-            } : null;
-        }
-
-        function floodFill(startX, startY, newColor) {
-            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            const w = imageData.width;
-            const h = imageData.height;
-            const data = imageData.data;
-
-            const pos = (startY * w + startX) * 4;
-            if (pos < 0 || pos >= data.length) return;
-
-            const sr = data[pos], sg = data[pos+1], sb = data[pos+2];
-
-            // LOGIKA PRECIZNOSTI:
-            // 1. Ne bojimo ako je piksel pretaman (to su linije crteža)
-            if (sr < 100 && sg < 100 && sb < 100) return;
-            // 2. Ne bojimo ako je već ta boja
-            if (sr === newColor.r && sg === newColor.g && sb === newColor.b) return;
-
-            const stack = [[startX, startY]];
-            const targetColor = {r: sr, g: sg, b: sb};
-
-            while (stack.length) {
-                const [x, y] = stack.pop();
-                const i = (y * w + x) * 4;
-
-                if (x >= 0 && x < w && y >= 0 && y < h &&
-                    data[i] === targetColor.r && 
-                    data[i+1] === targetColor.g && 
-                    data[i+2] === targetColor.b) {
-                    
-                    data[i] = newColor.r;
-                    data[i+1] = newColor.g;
-                    data[i+2] = newColor.b;
-                    data[i+3] = 255;
-
-                    stack.push([x + 1, y], [x - 1, y], [x, y + 1], [x, y - 1]);
-                }
+    function loadTemplate(src) {
+        loadingOverlay.style.display = 'flex';
+        const img = new Image();
+        img.crossOrigin = "anonymous";
+        
+        img.onload = () => {
+            currentImageSrc = src;
+            canvas.width = img.width;
+            canvas.height = img.height;
+            
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(img, 0, 0);
+            
+            // Obrada: Čišćenje za bolji FloodFill (Prag osetljivosti)
+            const idata = ctx.getImageData(0,0,canvas.width,canvas.height);
+            const d = idata.data;
+            for(let i=0; i<d.length; i+=4) {
+                const avg = (d[i]+d[i+1]+d[i+2])/3;
+                // Sve što je svetlo postaje čisto belo, tamno postaje crno
+                const v = avg > 220 ? 255 : 0; 
+                d[i] = d[i+1] = d[i+2] = v;
+                d[i+3] = 255;
             }
-            ctx.putImageData(imageData, 0, 0);
+            ctx.putImageData(idata, 0, 0);
+            history = [];
+            saveToHistory();
+            loadingOverlay.style.display = 'none';
+        };
+        img.src = src;
+    }
+
+    // --- LOGIKA BOJENJA ---
+
+    function handleAction(e) {
+        if (e.type === 'touchstart') e.preventDefault();
+
+        const rect = canvas.getBoundingClientRect();
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+
+        const x = Math.floor((clientX - rect.left) * scaleX);
+        const y = Math.floor((clientY - rect.top) * scaleY);
+
+        const fillRGB = hexToRgb(activeColor);
+        if (fillRGB) {
+            saveToHistory();
+            floodFill(x, y, fillRGB);
         }
+    }
 
-        // --- KONTROLE ---
+    canvas.addEventListener('mousedown', handleAction);
+    canvas.addEventListener('touchstart', handleAction, { passive: false });
 
-        document.getElementById('upload').onchange = (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = (ev) => loadTemplate(ev.target.result);
-            reader.readAsDataURL(file);
-        };
-        
-        document.getElementById('reset').onclick = () => {
-            if (currentImageSrc) loadTemplate(currentImageSrc);
-        };
-        
-        document.getElementById('save').onclick = () => {
-            const link = document.createElement('a');
-            link.download = 'moje_remek_djelo.png';
-            link.href = canvas.toDataURL('image/png');
-            link.click();
-        };
+    function hexToRgb(hex) {
+        const res = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+        return res ? {
+            r: parseInt(res[1], 16),
+            g: parseInt(res[2], 16),
+            b: parseInt(res[3], 16)
+        } : null;
+    }
 
-        // Pokretanje
-        window.onload = init;
-    </script>
+    function floodFill(startX, startY, newColor) {
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const w = imageData.width;
+        const h = imageData.height;
+        const data = imageData.data;
+
+        const pos = (startY * w + startX) * 4;
+        const sr = data[pos], sg = data[pos+1], sb = data[pos+2];
+
+        // Ne bojimo crne linije (linije crteža)
+        if (sr < 50 && sg < 50 && sb < 50) return;
+        // Ne bojimo ako je već ista boja
+        if (sr === newColor.r && sg === newColor.g && sb === newColor.b) return;
+
+        const stack = [[startX, startY]];
+        const targetColor = {r: sr, g: sg, b: sb};
+
+        while (stack.length) {
+            const [currX, currY] = stack.pop();
+            const i = (currY * w + currX) * 4;
+
+            if (currX >= 0 && currX < w && currY >= 0 && currY < h &&
+                data[i] === targetColor.r && 
+                data[i+1] === targetColor.g && 
+                data[i+2] === targetColor.b) {
+                
+                data[i] = newColor.r;
+                data[i+1] = newColor.g;
+                data[i+2] = newColor.b;
+                data[i+3] = 255;
+
+                stack.push([currX + 1, currY], [currX - 1, currY], [currX, currY + 1], [currX, currY - 1]);
+            }
+        }
+        ctx.putImageData(imageData, 0, 0);
+    }
+
+    // --- KOMANDE ---
+
+    document.getElementById('undo').onclick = () => {
+        if (history.length > 1) {
+            history.pop(); // Skloni trenutni
+            const lastState = history[history.length - 1];
+            ctx.putImageData(lastState, 0, 0);
+        }
+    };
+
+    document.getElementById('upload').onchange = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => loadTemplate(ev.target.result);
+        reader.readAsDataURL(file);
+    };
+    
+    document.getElementById('reset').onclick = () => {
+        if (currentImageSrc) loadTemplate(currentImageSrc);
+    };
+    
+    document.getElementById('save').onclick = () => {
+        const link = document.createElement('a');
+        link.download = 'moje_delo.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+    };
+
+    window.onload = init;
+</script>
 </body>
 </html>
