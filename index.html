@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>IĆOVA Bojanka - Precizno Bojenje</title>
+    <title>IĆOVA Bojanka</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { 
@@ -14,7 +14,7 @@
             user-select: none;
             margin: 0;
             padding: 0;
-            overflow: hidden; /* Sprečavamo skrolovanje celog body-ja */
+            overflow: hidden;
         }
         
         #app-wrapper {
@@ -48,10 +48,9 @@
             max-width: 100%; 
             max-height: 100%;
             cursor: crosshair;
-            image-rendering: pixelated;
+            image-rendering: auto;
         }
 
-        /* PALETA: Mobilni (Fixed Bottom) vs Desktop (Side) */
         .palette-container {
             background: white;
             padding: 12px;
@@ -66,7 +65,7 @@
                 white-space: nowrap;
                 display: flex;
                 gap: 12px;
-                padding-bottom: 20px; /* Space for thumb */
+                padding-bottom: 20px;
                 -webkit-overflow-scrolling: touch;
             }
             #palette {
@@ -81,6 +80,12 @@
                 background: #fff5f8;
                 overflow-x: auto;
             }
+            #gallery {
+                display: flex;
+                overflow-x: auto;
+                gap: 10px;
+                padding: 5px;
+            }
         }
 
         @media (min-width: 1025px) {
@@ -88,13 +93,13 @@
                 flex-direction: row;
             }
             .sidebar-left {
-                width: 250px;
+                width: 280px;
                 height: 100vh;
                 overflow-y: auto;
                 border-right: 2px solid #fce7f3;
             }
             .sidebar-right {
-                width: 120px;
+                width: 130px;
                 height: 100vh;
                 overflow-y: auto;
                 border-left: 2px solid #fce7f3;
@@ -103,6 +108,11 @@
                 display: grid;
                 grid-template-columns: repeat(2, 1fr);
                 gap: 10px;
+            }
+            #gallery {
+                display: grid;
+                grid-template-columns: 1fr;
+                gap: 12px;
             }
         }
 
@@ -124,14 +134,40 @@
         }
 
         .thumb-btn { 
-            width: 80px;
-            height: 80px;
-            border: 3px solid white; 
-            border-radius: 12px; 
+            width: 100%;
+            min-height: 80px;
+            border: 4px solid white; 
+            border-radius: 15px; 
             overflow: hidden; 
-            background: white; 
+            background: #f9f9f9; 
             flex-shrink: 0;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            transition: 0.2s;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        @media (max-width: 1024px) {
+            .thumb-btn { width: 120px; height: 90px; }
+        }
+
+        .thumb-btn:active { transform: scale(0.95); }
+        .thumb-btn img { width: 100%; height: 100%; object-fit: contain; }
+        
+        .thumb-label {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255,255,255,0.9);
+            font-size: 11px;
+            font-weight: 800;
+            text-align: center;
+            padding: 4px;
+            color: #be185d;
+            text-transform: uppercase;
         }
 
         .btn-control {
@@ -146,12 +182,15 @@
             transition: 0.2s;
             flex: 1;
             min-width: 80px;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.1);
         }
+
+        .btn-control:active { transform: translateY(2px); box-shadow: 0 2px 0 rgba(0,0,0,0.1); }
 
         #loading-overlay {
             position: absolute;
             inset: 0;
-            background: rgba(255,255,255,0.8);
+            background: rgba(255,255,255,0.95);
             display: none;
             flex-direction: column;
             align-items: center;
@@ -164,85 +203,79 @@
 
 <div id="app-wrapper">
     
-    <!-- LEVA STRANA: KOLEKCIJA I ALATI -->
     <aside class="sidebar-left bg-white p-4 flex flex-col gap-4">
-        <div class="hidden lg:block text-center mb-4">
-            <h1 class="text-2xl font-black text-pink-600">🎨 IĆOVA BOJANKA</h1>
+        <div class="hidden lg:block text-center mb-2">
+            <h1 class="text-3xl font-black text-pink-600 drop-shadow-sm">🎨 BOJANKA</h1>
+            <p class="text-xs text-pink-400 font-bold tracking-widest uppercase">Ićova Kreacija</p>
         </div>
 
         <div class="sidebar-tools flex flex-wrap gap-2">
-            <button id="undo" class="btn-control bg-gray-500 hover:bg-gray-600">↩️ Nazad</button>
-            <button id="reset" class="btn-control bg-orange-400 hover:bg-orange-500">✨ Očisti</button>
-            <button id="save" class="btn-control bg-emerald-500 hover:bg-emerald-600">💾 Sačuvaj</button>
-            <label class="btn-control bg-pink-500 hover:bg-pink-600">
-                ➕ Slika
-                <input type="file" id="upload" class="hidden" accept="image/*">
-            </label>
+            <button id="undo" class="btn-control bg-gray-500">↩️ Nazad</button>
+            <button id="reset" class="btn-control bg-orange-400">✨ Očisti</button>
+            <button id="save" class="btn-control bg-emerald-500">💾 Sačuvaj</button>
         </div>
 
-        <div class="mt-2">
-            <h2 class="font-black text-gray-700 mb-2 text-sm uppercase">🖼️ Kolekcija</h2>
-            <div id="gallery" class="flex lg:grid lg:grid-cols-2 gap-2 overflow-x-auto lg:overflow-visible pb-2">
-                <!-- Slike se generišu ovde -->
+        <div class="flex-1 overflow-hidden flex flex-col">
+            <h2 class="font-black text-gray-700 mb-2 text-sm uppercase flex items-center gap-2">
+                <span class="text-lg">🖼️</span> Galerija slika
+            </h2>
+            <div id="gallery" class="overflow-y-auto pr-2">
+                <!-- Slike iz tvog foldera /images/ -->
             </div>
         </div>
     </aside>
 
-    <!-- CENTAR: PLATNO -->
     <main id="canvas-container">
         <div id="loading-overlay">
-            <div class="animate-spin text-4xl mb-2">🖌️</div>
-            <span class="font-bold text-pink-500">Spremam crtež...</span>
+            <div class="animate-bounce text-5xl mb-4">🖍️</div>
+            <span class="font-black text-pink-600 text-xl uppercase tracking-tighter text-center">Učitavam crtež...<br><small class="text-xs text-pink-300">Proveri folder /images/</small></span>
         </div>
         <canvas id="canvas"></canvas>
     </main>
 
-    <!-- DESNA STRANA: PALETA BOJA (Na mobilnom dnu) -->
     <aside class="palette-container sidebar-right flex lg:flex-col items-center">
         <h2 class="hidden lg:block font-black text-pink-400 text-xs mb-4 uppercase">Boje</h2>
-        <div id="palette">
-            <!-- Boje se generišu ovde -->
-        </div>
+        <div id="palette"></div>
     </aside>
 
 </div>
 
 <script>
-    // --- KONFIGURACIJA ---
-    const galleryImages = [
-        'farma.png', 'traktor.png', 'lav.png', 'auto.png', 'slon.png', 'kuca.png'
+    // Popis slika. Provjeri jesu li nazivi datoteka točno ovakvi u tvom folderu /images/
+    const galleryItems = [
+        { name: 'Traktor', src: './images/traktor.png' },
+        { name: 'Farma', src: './images/farma.png' },
+        { name: 'Pas i mačka', src: './images/pasmacka.jpg' },
+        { name: 'Pinokio', src: './images/pinokio.jpg' }
     ];
 
     const colors = [
-        '#ffffff', // Gumica/Bela
+        '#ffffff', 
         '#ff4757', '#ff6b81', '#ff7f50', '#ffb142', '#f1c40f', '#eccc68', '#f9ca24',
         '#2ed573', '#7bed9f', '#1abc9c', '#1dd1a1', '#10ac84', '#05c46b', '#0be881',
         '#1e90ff', '#70a1ff', '#5352ed', '#3498db', '#2980b9', '#4834d4', '#686de0',
         '#a29bfe', '#9b59b6', '#8e44ad', '#6c5ce7', '#e056fd', '#be2edd', '#ff9ff3',
-        '#f8a5c2', '#e66767', '#cf6a87', '#95afc0', '#576574', '#2f3542', '#000000',
-        '#d2dae2', '#808e9b', '#4b4b4b', '#2c3e50'
+        '#f8a5c2', '#e66767', '#cf6a87', '#95afc0', '#576574', '#2f3542', '#000000'
     ];
 
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d', { willReadFrequently: true });
     const loadingOverlay = document.getElementById('loading-overlay');
     
-    let activeColor = colors[1]; // Crvena po defaultu
+    let activeColor = colors[1];
     let currentImageSrc = '';
-    let history = []; // Za Undo funkcionalnost
+    let history = [];
 
     function init() {
-        // Generisanje palete
         const palette = document.getElementById('palette');
-        colors.forEach((color, i) => {
+        colors.forEach((color) => {
             const btn = document.createElement('div');
             btn.className = `color-btn ${color === activeColor ? 'active' : ''}`;
-            if(color === '#ffffff') btn.innerHTML = '🧽';
+            if(color === '#ffffff') btn.innerHTML = '<span style="font-size:12px">🧽</span>';
             btn.style.backgroundColor = color;
             btn.style.display = 'flex';
             btn.style.alignItems = 'center';
             btn.style.justifyContent = 'center';
-            btn.style.fontSize = '20px';
             
             btn.onclick = () => {
                 document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
@@ -252,34 +285,40 @@
             palette.appendChild(btn);
         });
 
-        // Generisanje galerije
         const gallery = document.getElementById('gallery');
-        galleryImages.forEach(name => {
+        galleryItems.forEach(item => {
             const btn = document.createElement('button');
             btn.className = 'thumb-btn';
-            btn.onclick = () => loadTemplate(`https://placehold.co/600x600/white/black?text=${name.split('.')[0]}`);
+            btn.onclick = () => loadTemplate(item.src);
             
             const img = document.createElement('img');
-            img.src = `https://placehold.co/100x100/white/black?text=${name[0]}`;
-            img.className = "w-full h-full object-cover";
+            img.src = item.src;
+            img.onerror = () => {
+                // Ako slika ne postoji u folderu, koristi se placeholder
+                img.src = `https://placehold.co/200x150/fdf2f8/db2777?text=${encodeURIComponent(item.name)}`;
+                console.warn(`Slika ${item.src} nije pronađena. Provjerite folder /images/`);
+            };
+            
+            const label = document.createElement('div');
+            label.className = 'thumb-label';
+            label.innerText = item.name;
             
             btn.appendChild(img);
+            btn.appendChild(label);
             gallery.appendChild(btn);
         });
 
-        // Učitaj prvi demo
-        loadTemplate('https://placehold.co/800x600/white/black?text=BOJANKA+IGRA');
+        if(galleryItems.length > 0) loadTemplate(galleryItems[0].src);
     }
 
     function saveToHistory() {
-        if (history.length > 10) history.shift();
+        if (history.length > 15) history.shift();
         history.push(ctx.getImageData(0, 0, canvas.width, canvas.height));
     }
 
     function loadTemplate(src) {
         loadingOverlay.style.display = 'flex';
         const img = new Image();
-        img.crossOrigin = "anonymous";
         
         img.onload = () => {
             currentImageSrc = src;
@@ -289,14 +328,15 @@
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.drawImage(img, 0, 0);
             
-            // Obrada: Čišćenje za bolji FloodFill (Prag osetljivosti)
             const idata = ctx.getImageData(0,0,canvas.width,canvas.height);
             const d = idata.data;
             for(let i=0; i<d.length; i+=4) {
                 const avg = (d[i]+d[i+1]+d[i+2])/3;
-                // Sve što je svetlo postaje čisto belo, tamno postaje crno
-                const v = avg > 220 ? 255 : 0; 
-                d[i] = d[i+1] = d[i+2] = v;
+                if(avg > 150) {
+                    d[i] = d[i+1] = d[i+2] = 255;
+                } else {
+                    d[i] = d[i+1] = d[i+2] = 0;
+                }
                 d[i+3] = 255;
             }
             ctx.putImageData(idata, 0, 0);
@@ -304,24 +344,31 @@
             saveToHistory();
             loadingOverlay.style.display = 'none';
         };
+
+        img.onerror = () => {
+            // Ako glavna slika ne uspije, probaj generirati bijelu površinu za crtanje
+            console.error("Greška pri učitavanju: " + src);
+            canvas.width = 800;
+            canvas.height = 600;
+            ctx.fillStyle = "white";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            loadingOverlay.style.display = 'none';
+        };
         img.src = src;
     }
 
-    // --- LOGIKA BOJENJA ---
-
     function handleAction(e) {
         if (e.type === 'touchstart') e.preventDefault();
-
         const rect = canvas.getBoundingClientRect();
         const clientX = e.touches ? e.touches[0].clientX : e.clientX;
         const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-
+        
         const scaleX = canvas.width / rect.width;
         const scaleY = canvas.height / rect.height;
-
+        
         const x = Math.floor((clientX - rect.left) * scaleX);
         const y = Math.floor((clientY - rect.top) * scaleY);
-
+        
         const fillRGB = hexToRgb(activeColor);
         if (fillRGB) {
             saveToHistory();
@@ -334,11 +381,7 @@
 
     function hexToRgb(hex) {
         const res = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-        return res ? {
-            r: parseInt(res[1], 16),
-            g: parseInt(res[2], 16),
-            b: parseInt(res[3], 16)
-        } : null;
+        return res ? { r: parseInt(res[1], 16), g: parseInt(res[2], 16), b: parseInt(res[3], 16) } : null;
     }
 
     function floodFill(startX, startY, newColor) {
@@ -346,13 +389,12 @@
         const w = imageData.width;
         const h = imageData.height;
         const data = imageData.data;
-
         const pos = (startY * w + startX) * 4;
+        
+        if (pos < 0 || pos >= data.length) return;
+        
         const sr = data[pos], sg = data[pos+1], sb = data[pos+2];
-
-        // Ne bojimo crne linije (linije crteža)
         if (sr < 50 && sg < 50 && sb < 50) return;
-        // Ne bojimo ako je već ista boja
         if (sr === newColor.r && sg === newColor.g && sb === newColor.b) return;
 
         const stack = [[startX, startY]];
@@ -363,46 +405,31 @@
             const i = (currY * w + currX) * 4;
 
             if (currX >= 0 && currX < w && currY >= 0 && currY < h &&
-                data[i] === targetColor.r && 
-                data[i+1] === targetColor.g && 
-                data[i+2] === targetColor.b) {
+                data[i] === targetColor.r && data[i+1] === targetColor.g && data[i+2] === targetColor.b) {
                 
-                data[i] = newColor.r;
-                data[i+1] = newColor.g;
-                data[i+2] = newColor.b;
+                data[i] = newColor.r; 
+                data[i+1] = newColor.g; 
+                data[i+2] = newColor.b; 
                 data[i+3] = 255;
-
+                
                 stack.push([currX + 1, currY], [currX - 1, currY], [currX, currY + 1], [currX, currY - 1]);
             }
         }
         ctx.putImageData(imageData, 0, 0);
     }
 
-    // --- KOMANDE ---
-
     document.getElementById('undo').onclick = () => {
         if (history.length > 1) {
-            history.pop(); // Skloni trenutni
-            const lastState = history[history.length - 1];
-            ctx.putImageData(lastState, 0, 0);
+            history.pop();
+            ctx.putImageData(history[history.length - 1], 0, 0);
         }
     };
-
-    document.getElementById('upload').onchange = (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = (ev) => loadTemplate(ev.target.result);
-        reader.readAsDataURL(file);
-    };
     
-    document.getElementById('reset').onclick = () => {
-        if (currentImageSrc) loadTemplate(currentImageSrc);
-    };
+    document.getElementById('reset').onclick = () => { if (currentImageSrc) loadTemplate(currentImageSrc); };
     
     document.getElementById('save').onclick = () => {
         const link = document.createElement('a');
-        link.download = 'moje_delo.png';
+        link.download = 'bojanka_rad.png';
         link.href = canvas.toDataURL('image/png');
         link.click();
     };
