@@ -3,15 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>IĆOVA Bojanka</title>
+    <title>IĆOVA Bojanka Pro</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
-
         body { 
             background-color: #fdf2f8; 
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+            font-family: 'Segoe UI', Roboto, sans-serif; 
             touch-action: none;
-            -webkit-user-select: none;
             user-select: none;
             overflow: hidden;
             height: 100dvh;
@@ -19,527 +17,273 @@
             flex-direction: column;
         }
 
-        /* ===== DESKTOP LAYOUT ===== */
-        #app-wrapper {
-            display: flex;
-            flex: 1;
-            overflow: hidden;
-        }
+        #app-wrapper { display: flex; flex: 1; overflow: hidden; }
 
-        /* ===== SIDEBAR LEFT (desktop) ===== */
-        .sidebar-left {
-            width: 200px;
-            background: white;
-            border-right: 2px solid #fce7f3;
-            display: flex;
-            flex-direction: column;
-            padding: 12px;
-            gap: 10px;
-            overflow-y: auto;
-        }
+        /* SIDEBARS */
+        .sidebar-left { width: 220px; background: white; border-right: 2px solid #fce7f3; display: flex; flex-direction: column; padding: 12px; gap: 10px; overflow-y: auto; }
+        .sidebar-right { width: 110px; background: white; border-left: 2px solid #fce7f3; display: flex; flex-direction: column; align-items: center; padding: 12px 8px; gap: 8px; overflow-y: auto; }
 
-        .sidebar-title {
-            text-align: center;
-        }
-        .sidebar-title h1 {
-            font-size: 20px;
-            font-weight: 900;
-            color: #db2777;
-        }
-        .sidebar-title p {
-            font-size: 10px;
-            color: #f9a8d4;
-            font-weight: 700;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-        }
+        .sidebar-title h1 { font-size: 20px; font-weight: 900; color: #db2777; text-align: center; }
+        .sidebar-title p { font-size: 10px; color: #f9a8d4; text-align: center; font-weight: 700; text-transform: uppercase; }
 
-        .tools-row {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-
+        .tools-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
         .btn-control {
-            padding: 9px;
-            border-radius: 10px;
-            font-weight: 800;
-            font-size: 11px;
-            text-align: center;
-            text-transform: uppercase;
-            color: white;
-            cursor: pointer;
-            border: none;
-            box-shadow: 0 3px 0 rgba(0,0,0,0.15);
-            transition: 0.15s;
+            padding: 10px 5px; border-radius: 10px; font-weight: 800; font-size: 10px;
+            text-align: center; text-transform: uppercase; color: white; cursor: pointer;
+            border: none; box-shadow: 0 3px 0 rgba(0,0,0,0.1); transition: 0.1s;
         }
-        .btn-control:active { transform: translateY(2px); box-shadow: 0 1px 0 rgba(0,0,0,0.15); }
+        .btn-control:active { transform: translateY(2px); box-shadow: 0 1px 0 rgba(0,0,0,0.1); }
+        .full-width { grid-column: span 2; }
 
-        .gallery-section h2 {
-            font-size: 11px;
-            font-weight: 900;
-            color: #6b7280;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 8px;
+        /* CANVAS */
+        #canvas-container { 
+            flex: 1; background: #eee; position: relative; 
+            display: flex; align-items: center; justify-content: center; overflow: hidden; 
         }
+        canvas { background: white; max-width: 95%; max-height: 95%; box-shadow: 0 0 20px rgba(0,0,0,0.1); cursor: crosshair; }
 
-        #gallery {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .thumb-btn {
-            width: 100%;
-            height: 80px;
-            border: 3px solid white;
-            border-radius: 12px;
-            overflow: hidden;
-            background: #f9f9f9;
-            box-shadow: 0 3px 8px rgba(0,0,0,0.1);
-            transition: 0.2s;
-            position: relative;
-            cursor: pointer;
-        }
-        .thumb-btn:active { transform: scale(0.96); }
-        .thumb-btn img { width: 100%; height: 100%; object-fit: contain; }
-        .thumb-label {
-            position: absolute;
-            bottom: 0; left: 0; right: 0;
-            background: rgba(255,255,255,0.92);
-            font-size: 10px;
-            font-weight: 800;
-            text-align: center;
-            padding: 3px;
-            color: #be185d;
-            text-transform: uppercase;
-        }
-
-        /* ===== CANVAS AREA ===== */
-        #canvas-container {
-            flex: 1;
-            background-image: 
-                linear-gradient(45deg, #e8e8e8 25%, transparent 25%), 
-                linear-gradient(-45deg, #e8e8e8 25%, transparent 25%), 
-                linear-gradient(45deg, transparent 75%, #e8e8e8 75%), 
-                linear-gradient(-45deg, transparent 75%, #e8e8e8 75%);
-            background-size: 20px 20px;
-            background-color: #f0f0f0;
-            position: relative;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-        }
-
-        canvas {
-            display: block;
-            max-width: 100%;
-            max-height: 100%;
-            cursor: crosshair;
-        }
-
-        /* ===== SIDEBAR RIGHT — COLORS (desktop) ===== */
-        .sidebar-right {
-            width: 100px;
-            background: white;
-            border-left: 2px solid #fce7f3;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 12px 8px;
-            gap: 8px;
-            overflow-y: auto;
-        }
-
-        .sidebar-right h2 {
-            font-size: 10px;
-            font-weight: 900;
-            color: #f9a8d4;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        #palette-desktop {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 8px;
-            width: 100%;
-        }
-
-        /* ===== MOBILE BOTTOM BAR ===== */
-        #mobile-bottom {
-            display: none;
-            flex-direction: column;
-            background: white;
-            box-shadow: 0 -4px 20px rgba(0,0,0,0.12);
-            z-index: 100;
-            padding-bottom: env(safe-area-inset-bottom, 0px);
-        }
-
-        /* Mobile tools row */
-        #mobile-tools {
-            display: flex;
-            gap: 6px;
-            padding: 8px 10px 4px;
-        }
-
-        #mobile-tools .btn-control {
-            flex: 1;
-            font-size: 10px;
-            padding: 7px 4px;
-        }
-
-        /* Mobile gallery strip */
-        #mobile-gallery-strip {
-            display: flex;
-            gap: 8px;
-            padding: 4px 10px;
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
-            scrollbar-width: none;
-        }
-        #mobile-gallery-strip::-webkit-scrollbar { display: none; }
-
-        .thumb-mobile {
-            flex-shrink: 0;
-            width: 65px;
-            height: 50px;
-            border: 2px solid #fce7f3;
-            border-radius: 8px;
-            overflow: hidden;
-            background: #fdf2f8;
-            position: relative;
-            cursor: pointer;
-        }
-        .thumb-mobile img { width: 100%; height: 100%; object-fit: contain; }
-        .thumb-mobile span {
-            position: absolute;
-            bottom: 0; left: 0; right: 0;
-            background: rgba(255,255,255,0.9);
-            font-size: 8px;
-            font-weight: 800;
-            text-align: center;
-            color: #be185d;
-            text-transform: uppercase;
-            padding: 1px;
-        }
-
-        /* ===== COLOR PALETTE — shared styles ===== */
+        /* COLOR BUTTONS */
+        #palette-desktop, #mobile-color-strip { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
         .color-btn { 
-            width: 38px; 
-            height: 38px; 
-            border-radius: 50%; 
-            border: 3px solid white; 
-            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
-            cursor: pointer; 
-            box-shadow: 0 3px 6px rgba(0,0,0,0.15);
-            flex-shrink: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 13px;
+            width: 40px; height: 40px; border-radius: 50%; border: 3px solid white; 
+            box-shadow: 0 3px 6px rgba(0,0,0,0.1); cursor: pointer; 
         }
-        .color-btn.active { 
-            transform: scale(1.25); 
-            border-color: #db2777; 
-            box-shadow: 0 0 0 3px rgba(219,39,119,0.3); 
-        }
+        .color-btn.active { transform: scale(1.2); border-color: #db2777; z-index: 10; }
 
-        /* Mobile color strip */
-        #mobile-color-strip {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 8px 12px 10px;
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
-            scroll-behavior: smooth;
-            scrollbar-width: none;
-        }
-        #mobile-color-strip::-webkit-scrollbar { display: none; }
+        /* MOBILE */
+        #mobile-bottom { display: none; background: white; padding: 8px; flex-direction: column; gap: 8px; }
+        #mobile-tools { display: flex; overflow-x: auto; gap: 8px; padding-bottom: 5px; }
+        #mobile-color-strip { display: flex; overflow-x: auto; padding: 5px; }
+        #mobile-color-strip .color-btn { flex-shrink: 0; width: 45px; height: 45px; }
 
-        #mobile-color-strip .color-btn {
-            width: 42px;
-            height: 42px;
-        }
-
-        /* Loading overlay */
-        #loading-overlay {
-            position: absolute;
-            inset: 0;
-            background: rgba(255,255,255,0.95);
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 100;
-        }
-
-        /* ===== RESPONSIVE ===== */
         @media (max-width: 768px) {
             .sidebar-left, .sidebar-right { display: none; }
             #mobile-bottom { display: flex; }
-            body { overflow: hidden; }
+        }
+
+        #loading-overlay {
+            position: absolute; inset: 0; background: rgba(255,255,255,0.9);
+            display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 1000;
         }
     </style>
 </head>
 <body>
 
-<!-- ===== DESKTOP APP WRAPPER ===== -->
 <div id="app-wrapper">
-
-    <!-- Sidebar Left: title + tools + gallery -->
     <aside class="sidebar-left">
-        <div class="sidebar-title">
-            <h1>🎨 Ićova bojanka</h1>
-            <p>by Milo</p>
-        </div>
-
-        <div class="tools-row">
+        <div class="sidebar-title"><h1>🎨 Ićova Bojanka</h1><p>V3.0 Magic</p></div>
+        
+        <div class="tools-grid">
             <button id="undo-d" class="btn-control" style="background:#6b7280">↩️ Nazad</button>
             <button id="reset-d" class="btn-control" style="background:#f97316">✨ Očisti</button>
-            <button id="save-d" class="btn-control" style="background:#10b981">💾 Sačuvaj</button>
+            <button id="save-d" class="btn-control full-width" style="background:#10b981">💾 Sačuvaj Rad</button>
+            <button id="upload-d" class="btn-control full-width" style="background:#8b5cf6">📁 Ubaci Sliku</button>
+            <button id="magic-d" class="btn-control full-width" style="background:#ec4899; font-size:12px">🪄 Magično Bojenje</button>
         </div>
 
-        <div class="gallery-section">
-            <h2>🖼️ Galerija</h2>
-            <div id="gallery"></div>
+        <input type="file" id="file-input" hidden accept="image/*">
+        
+        <div style="margin-top:10px">
+            <p style="font-size:11px; font-weight:800; color:#999; margin-bottom:5px">IZABERI CRTEŽ:</p>
+            <div id="gallery" style="display:grid; grid-template-columns: 1fr 1fr; gap:5px"></div>
         </div>
     </aside>
 
-    <!-- Canvas -->
     <main id="canvas-container">
-        <div id="loading-overlay" style="display:none;flex-direction:column;align-items:center;justify-content:center;">
-            <div style="font-size:48px;animation:bounce 0.8s infinite alternate">🖍️</div>
-            <span style="font-weight:900;color:#db2777;font-size:18px;text-transform:uppercase;margin-top:12px">Učitavam...</span>
-        </div>
+        <div id="loading-overlay"><h2>🪄 Čarolija u toku...</h2></div>
         <canvas id="canvas"></canvas>
     </main>
 
-    <!-- Sidebar Right: color palette -->
     <aside class="sidebar-right">
-        <h2>Boje</h2>
         <div id="palette-desktop"></div>
     </aside>
-
 </div>
 
-<!-- ===== MOBILE BOTTOM BAR ===== -->
 <div id="mobile-bottom">
-    <!-- Tools + gallery -->
     <div id="mobile-tools">
-        <button id="undo-m" class="btn-control" style="background:#6b7280">↩️ Nazad</button>
-        <button id="reset-m" class="btn-control" style="background:#f97316">✨ Očisti</button>
-        <button id="save-m" class="btn-control" style="background:#10b981">💾 Sačuvaj</button>
+        <button id="magic-m" class="btn-control" style="background:#ec4899; min-width:100px">🪄 Magija</button>
+        <button id="undo-m" class="btn-control" style="background:#6b7280">↩️</button>
+        <button id="upload-m" class="btn-control" style="background:#8b5cf6">📁</button>
+        <button id="save-m" class="btn-control" style="background:#10b981">💾</button>
+        <button id="reset-m" class="btn-control" style="background:#f97316">✨</button>
     </div>
-
-    <!-- Gallery strip -->
-    <div id="mobile-gallery-strip"></div>
-
-    <!-- Color strip — horizontal scroll, always visible -->
     <div id="mobile-color-strip"></div>
 </div>
 
-<style>
-@keyframes bounce {
-    from { transform: translateY(0); }
-    to { transform: translateY(-10px); }
-}
-</style>
-
 <script>
-    const galleryItems = [
-        { name: 'Traktor',   src: './images/traktor.png' },
-        { name: 'Farma',     src: './images/farma.png' },
-        { name: 'Pas i mačka', src: './images/pasmacka.jpg' },
-        { name: 'Pinokio',   src: './images/pinokio.jpg' }
-    ];
-
-    const colors = [
-        '#ffffff',
-        '#ff4757','#ff6b81','#ff7f50','#ffb142','#f1c40f','#f9ca24',
-        '#2ed573','#7bed9f','#1abc9c','#10ac84','#05c46b',
-        '#1e90ff','#70a1ff','#5352ed','#3498db','#4834d4','#686de0',
-        '#a29bfe','#9b59b6','#8e44ad','#e056fd','#be2edd','#ff9ff3',
-        '#f8a5c2','#e66767','#cf6a87','#95afc0','#576574','#2f3542','#000000'
-    ];
-
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d', { willReadFrequently: true });
-    const loadingOverlay = document.getElementById('loading-overlay');
+    const fileInput = document.getElementById('file-input');
+    const loading = document.getElementById('loading-overlay');
+
+    const colors = [
+        '#ffffff', '#ff4757', '#ff7f50', '#f1c40f', '#2ed573', 
+        '#1e90ff', '#3498db', '#9b59b6', '#e056fd', '#000000',
+        '#ffafbd', '#ffc3a0', '#2193b0', '#ee9ca7', '#b91d73'
+    ];
 
     let activeColor = colors[1];
-    let currentImageSrc = '';
     let history = [];
+    let isProcessing = false;
 
-    // ---- Build color button ----
-    function makeColorBtn(color) {
-        const btn = document.createElement('div');
-        btn.className = 'color-btn' + (color === activeColor ? ' active' : '');
-        btn.style.backgroundColor = color;
-        if (color === '#ffffff') btn.textContent = '🧽';
-        btn.addEventListener('pointerdown', (e) => {
-            e.stopPropagation();
-            document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
-            // Activate all buttons with same color
-            document.querySelectorAll('.color-btn').forEach(b => {
-                if (b.dataset.color === color) b.classList.add('active');
+    // Inicijalizacija boja
+    function initUI() {
+        const containers = [document.getElementById('palette-desktop'), document.getElementById('mobile-color-strip')];
+        containers.forEach(container => {
+            colors.forEach(color => {
+                const btn = document.createElement('div');
+                btn.className = 'color-btn';
+                btn.style.backgroundColor = color;
+                btn.onclick = () => {
+                    activeColor = color;
+                    document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                };
+                container.appendChild(btn);
             });
-            activeColor = color;
         });
-        btn.dataset.color = color;
-        return btn;
-    }
 
-    function init() {
-        // Desktop palette
-        const palDeskop = document.getElementById('palette-desktop');
-        colors.forEach(color => palDeskop.appendChild(makeColorBtn(color)));
-
-        // Mobile color strip
-        const palMobile = document.getElementById('mobile-color-strip');
-        colors.forEach(color => palMobile.appendChild(makeColorBtn(color)));
-
-        // Desktop gallery
+        // Demo galerija
         const gallery = document.getElementById('gallery');
-        galleryItems.forEach(item => {
-            const btn = document.createElement('button');
-            btn.className = 'thumb-btn';
-            btn.onclick = () => loadTemplate(item.src);
-            const img = document.createElement('img');
-            img.src = item.src;
-            img.onerror = () => img.src = `https://placehold.co/200x150/fdf2f8/db2777?text=${encodeURIComponent(item.name)}`;
-            const label = document.createElement('div');
-            label.className = 'thumb-label';
-            label.innerText = item.name;
-            btn.appendChild(img);
-            btn.appendChild(label);
-            gallery.appendChild(btn);
+        ['traktor', 'farma', 'pasmacka'].forEach(name => {
+            const imgBtn = document.createElement('div');
+            imgBtn.style = "height:50px; background:#eee; border-radius:5px; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:10px; border:1px solid #ddd";
+            imgBtn.innerText = name.toUpperCase();
+            imgBtn.onclick = () => loadTemplate(`./images/${name}.png`);
+            gallery.appendChild(imgBtn);
         });
-
-        // Mobile gallery strip
-        const mGallery = document.getElementById('mobile-gallery-strip');
-        galleryItems.forEach(item => {
-            const btn = document.createElement('div');
-            btn.className = 'thumb-mobile';
-            btn.onclick = () => loadTemplate(item.src);
-            const img = document.createElement('img');
-            img.src = item.src;
-            img.onerror = () => img.src = `https://placehold.co/130x100/fdf2f8/db2777?text=${encodeURIComponent(item.name)}`;
-            const span = document.createElement('span');
-            span.textContent = item.name;
-            btn.appendChild(img);
-            btn.appendChild(span);
-            mGallery.appendChild(btn);
-        });
-
-        if (galleryItems.length > 0) loadTemplate(galleryItems[0].src);
-
-        // Buttons
-        ['undo-d','undo-m'].forEach(id => document.getElementById(id).onclick = undo);
-        ['reset-d','reset-m'].forEach(id => document.getElementById(id).onclick = () => { if (currentImageSrc) loadTemplate(currentImageSrc); });
-        ['save-d','save-m'].forEach(id => document.getElementById(id).onclick = saveImg);
     }
 
-    function saveToHistory() {
-        if (history.length > 20) history.shift();
-        history.push(ctx.getImageData(0, 0, canvas.width, canvas.height));
-    }
-
-    function undo() {
-        if (history.length > 1) {
-            history.pop();
-            ctx.putImageData(history[history.length - 1], 0, 0);
+    // PROCESIRANJE SLIKE (Pretvaranje u line-art)
+    function processImage() {
+        const idata = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const d = idata.data;
+        for (let i = 0; i < d.length; i += 4) {
+            const avg = (d[i] + d[i+1] + d[i+2]) / 3;
+            const val = avg > 180 ? 255 : 0; // Prag za crno-belo
+            d[i] = d[i+1] = d[i+2] = val;
+            d[i+3] = 255;
         }
-    }
-
-    function saveImg() {
-        const link = document.createElement('a');
-        link.download = 'bojanka_rad.png';
-        link.href = canvas.toDataURL('image/png');
-        link.click();
+        ctx.putImageData(idata, 0, 0);
+        saveHistory();
     }
 
     function loadTemplate(src) {
-        loadingOverlay.style.display = 'flex';
         const img = new Image();
         img.onload = () => {
-            currentImageSrc = src;
             canvas.width = img.width;
             canvas.height = img.height;
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.drawImage(img, 0, 0);
-            const idata = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            const d = idata.data;
-            for (let i = 0; i < d.length; i += 4) {
-                const avg = (d[i] + d[i+1] + d[i+2]) / 3;
-                d[i] = d[i+1] = d[i+2] = avg > 150 ? 255 : 0;
-                d[i+3] = 255;
-            }
-            ctx.putImageData(idata, 0, 0);
-            history = [];
-            saveToHistory();
-            loadingOverlay.style.display = 'none';
-        };
-        img.onerror = () => {
-            canvas.width = 800; canvas.height = 600;
-            ctx.fillStyle = 'white';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            loadingOverlay.style.display = 'none';
+            processImage();
         };
         img.src = src;
     }
 
-    // ---- Canvas interaction — pointer events (works on touch AND mouse) ----
-    function getCanvasPos(e) {
-        const rect = canvas.getBoundingClientRect();
-        const touch = e.changedTouches ? e.changedTouches[0] : e;
-        const scaleX = canvas.width / rect.width;
-        const scaleY = canvas.height / rect.height;
-        return {
-            x: Math.floor((touch.clientX - rect.left) * scaleX),
-            y: Math.floor((touch.clientY - rect.top) * scaleY)
+    // UPLOAD SLIKE
+    const handleUpload = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (f) => {
+            const img = new Image();
+            img.onload = () => {
+                const maxW = 1200;
+                const scale = maxW / img.width;
+                canvas.width = img.width * (img.width > maxW ? scale : 1);
+                canvas.height = img.height * (img.width > maxW ? scale : 1);
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                processImage();
+            };
+            img.src = f.target.result;
         };
+        reader.readAsDataURL(file);
+    };
+
+    fileInput.onchange = handleUpload;
+    document.getElementById('upload-d').onclick = () => fileInput.click();
+    document.getElementById('upload-m').onclick = () => fileInput.click();
+
+    // FLOOD FILL ALGORITAM
+    function floodFill(startX, startY, fillRGB) {
+        const idata = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const { width: w, height: h, data } = idata;
+        const stack = [[startX, startY]];
+        const pos = (startY * w + startX) * 4;
+        const targetR = data[pos], targetG = data[pos+1], targetB = data[pos+2];
+
+        if (targetR < 50 && targetG < 50 && targetB < 50) return; // Klik na liniju
+        if (targetR === fillRGB.r && targetG === fillRGB.g && targetB === fillRGB.b) return;
+
+        while (stack.length) {
+            const [x, y] = stack.pop();
+            const i = (y * w + x) * 4;
+            if (x >= 0 && x < w && y >= 0 && y < h && data[i] === targetR && data[i+1] === targetG && data[i+2] === targetB) {
+                data[i] = fillRGB.r; data[i+1] = fillRGB.g; data[i+2] = fillRGB.b;
+                stack.push([x+1, y], [x-1, y], [x, y+1], [x, y-1]);
+            }
+        }
+        ctx.putImageData(idata, 0, 0);
     }
 
-    canvas.addEventListener('pointerdown', (e) => {
-        e.preventDefault();
-        const { x, y } = getCanvasPos(e);
-        const fillRGB = hexToRgb(activeColor);
-        if (fillRGB) {
-            saveToHistory();
-            floodFill(x, y, fillRGB);
+    // PAMETNO BOJENJE (Auto-magic)
+    async function magicFill() {
+        if (isProcessing) return;
+        isProcessing = true;
+        loading.style.display = 'flex';
+        
+        await new Promise(r => setTimeout(r, 100)); // Da UI pokaže loader
+
+        const idata = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const { width: w, height: h, data } = idata;
+
+        // Prolazimo kroz sliku u koracima da uštedimo vreme
+        for (let y = 0; y < h; y += 10) {
+            for (let x = 0; x < w; x += 10) {
+                const i = (y * w + x) * 4;
+                if (data[i] === 255 && data[i+1] === 255 && data[i+2] === 255) {
+                    const randomColor = hexToRgb(colors[Math.floor(Math.random() * (colors.length - 1)) + 1]);
+                    floodFill(x, y, randomColor);
+                    // Ponovo uzmi podatke jer se platno promenilo
+                    const newData = ctx.getImageData(0,0, canvas.width, canvas.height).data;
+                    for(let j=0; j<data.length; j++) data[j] = newData[j];
+                }
+            }
         }
-    });
+        
+        loading.style.display = 'none';
+        isProcessing = false;
+        saveHistory();
+    }
 
     function hexToRgb(hex) {
         const res = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
         return res ? { r: parseInt(res[1],16), g: parseInt(res[2],16), b: parseInt(res[3],16) } : null;
     }
 
-    function floodFill(startX, startY, newColor) {
-        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        const { width: w, height: h, data } = imageData;
-        const pos = (startY * w + startX) * 4;
-        if (pos < 0 || pos >= data.length) return;
-        const sr = data[pos], sg = data[pos+1], sb = data[pos+2];
-        if (sr < 50 && sg < 50 && sb < 50) return;
-        if (sr === newColor.r && sg === newColor.g && sb === newColor.b) return;
-        const stack = [[startX, startY]];
-        while (stack.length) {
-            const [cx, cy] = stack.pop();
-            const i = (cy * w + cx) * 4;
-            if (cx < 0 || cx >= w || cy < 0 || cy >= h) continue;
-            if (data[i] !== sr || data[i+1] !== sg || data[i+2] !== sb) continue;
-            data[i] = newColor.r; data[i+1] = newColor.g; data[i+2] = newColor.b; data[i+3] = 255;
-            stack.push([cx+1,cy],[cx-1,cy],[cx,cy+1],[cx,cy-1]);
-        }
-        ctx.putImageData(imageData, 0, 0);
+    function saveHistory() {
+        if (history.length > 10) history.shift();
+        history.push(ctx.getImageData(0, 0, canvas.width, canvas.height));
     }
 
-    window.onload = init;
+    canvas.addEventListener('pointerdown', (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const x = Math.floor((e.clientX - rect.left) * (canvas.width / rect.width));
+        const y = Math.floor((e.clientY - rect.top) * (canvas.height / rect.height));
+        saveHistory();
+        floodFill(x, y, hexToRgb(activeColor));
+    });
+
+    // Event Listeners
+    document.getElementById('magic-d').onclick = magicFill;
+    document.getElementById('magic-m').onclick = magicFill;
+    document.getElementById('undo-d').onclick = () => { if(history.length > 1) { history.pop(); ctx.putImageData(history[history.length-1],0,0); }};
+    document.getElementById('undo-m').onclick = () => document.getElementById('undo-d').onclick();
+    document.getElementById('save-d').onclick = () => { const a = document.createElement('a'); a.href=canvas.toDataURL(); a.download='moj_rad.png'; a.click(); };
+    document.getElementById('save-m').onclick = () => document.getElementById('save-d').onclick();
+
+    initUI();
+    loadTemplate('https://www.supercoloring.com/sites/default/files/styles/coloring_full/public/cif/2022/02/tractor-coloring-page.png'); // Placeholder start
+
 </script>
 </body>
 </html>
