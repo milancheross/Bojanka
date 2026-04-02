@@ -116,6 +116,186 @@
     const fileInput = document.getElementById('file-input');
     const loading = document.getElementById('loading-overlay');
 
+    // Linkovi ka pravim slikama na internetu
+    const galleryItems = [
+        { name: 'TRAKTOR', url: 'https://i.imgur.com/8mX5K3W.png' },
+        { name: 'KUCA', url: 'https://i.imgur.com/WvXG9oV.png' },
+        { name: 'MACA', url: 'https://i.imgur.com/uY6T6o7.png' },
+        { name: 'SLON', url: 'https://i.imgur.com/4zYf7b8.png' }
+    ];
+
+    const colors = [
+        '#ffffff', '#ff4757', '#ff7f50', '#f1c40f', '#2ed573', 
+        '#1e90ff', '#3498db', '#9b59b6', '#e056fd', '#000000',
+        '#ffafbd', '#ffc3a0', '#2193b0', '#ee9ca7', '#b91d73'
+    ];
+
+    let activeColor = colors[1];
+    let history = [];
+    let isProcessing = false;
+
+    function initUI() {
+        const containers = [document.getElementById('palette-desktop'), document.getElementById('mobile-color-strip')];
+        containers.forEach(container => {
+            colors.forEach(color => {
+                const btn = document.createElement('div');
+                btn.className = 'color-btn';
+                btn.style.backgroundColor = color;
+                btn.onclick = () => {
+                    activeColor = color;
+                    document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                };
+                container.appendChild(btn);
+            });
+        });
+
+        const gallery = document.getElementById('gallery');
+        galleryItems.forEach(item => {
+            const imgBtn = document.createElement('div');
+            imgBtn.style = "height:50px; background:#fff; border-radius:5px; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:10px; border:2px solid #fce7f3; font-weight:bold; color:#db2777";
+            imgBtn.innerText = item.name;
+            imgBtn.onclick = () => loadTemplate(item.url);
+            gallery.appendChild(imgBtn);
+        });
+    }
+
+    function processImage() {
+        const idata = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const d = idata.data;
+        for (let i = 0; i < d.length; i += 4) {
+            const avg = (d[i] + d[i+1] + d[i+2]) / 3;
+            const val = avg > 200 ? 255 : 0; 
+            d[i] = d[i+1] = d[i+2] = val;
+            d[i+3] = 255;
+        }
+        ctx.putImageData(idata, 0, 0);
+        saveHistory();
+    }
+
+    function loadTemplate(src) {
+        loading.style.display = 'flex';
+        const img = new Image();
+        img.crossOrigin = "Anonymous"; 
+        img.onload = () => {
+            const maxW = 1000;
+            const scale = maxW / img.width;
+            canvas.width = img.width > maxW ? maxW : img.width;
+            canvas.height = img.width > maxW ? img.height * scale : img.height;
+            ctx.fillStyle = "white";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            processImage();
+            loading.style.display = 'none';
+        };
+        img.src = src;
+    }
+
+    const handleUpload = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (f) => {
+            loadTemplate(f.target.result);
+        };
+        reader.readAsDataURL(file);
+    };
+
+    fileInput.onchange = handleUpload;
+    document.getElementById('upload-d').onclick = () => fileInput.click();
+    document.getElementById('upload-m').onclick = () => fileInput.click();
+
+    function floodFill(startX, startY, fillRGB) {
+        const idata = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const { width: w, height: h, data } = idata;
+        const stack = [[startX, startY]];
+        const pos = (startY * w + startX) * 4;
+        const targetR = data[pos], targetG = data[pos+1], targetB = data[pos+2];
+
+        if (targetR < 50 && targetG < 50 && targetB < 50) return; 
+        if (targetR === fillRGB.r && targetG === fillRGB.g && targetB === fillRGB.b) return;
+
+        while (stack.length) {
+            const [x, y] = stack.pop();
+            const i = (y * w + x) * 4;
+            if (x >= 0 && x < w && y >= 0 && y < h && data[i] === targetR && data[i+1] === targetG && data[i+2] === targetB) {
+                data[i] = fillRGB.r; data[i+1] = fillRGB.g; data[i+2] = fillRGB.b;
+                stack.push([x+1, y], [x-1, y], [x, y+1], [x, y-1]);
+            }
+        }
+        ctx.putImageData(idata, 0, 0);
+    }
+
+    async function magicFill() {
+        if (isProcessing) return;
+        isProcessing = true;
+        loading.style.display = 'flex';
+        await new Promise(r => setTimeout(r, 50));
+
+        const idata = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const { width: w, height: h, data } = idata;
+
+        for (let y = 0; y < h; y += 15) {
+            for (let x = 0; x < w; x += 15) {
+                const i = (y * w + x) * 4;
+                if (data[i] === 255 && data[i+1] === 255 && data[i+2] === 255) {
+                    const randomColor = hexToRgb(colors[Math.floor(Math.random() * (colors.length - 1)) + 1]);
+                    floodFill(x, y, randomColor);
+                    const newData = ctx.getImageData(0,0, canvas.width, canvas.height).data;
+                    for(let j=0; j<data.length; j++) data[j] = newData[j];
+                }
+            }
+        }
+        loading.style.display = 'none';
+        isProcessing = false;
+        saveHistory();
+    }
+
+    function hexToRgb(hex) {
+        const res = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+        return res ? { r: parseInt(res[1],16), g: parseInt(res[2],16), b: parseInt(res[3],16) } : null;
+    }
+
+    function saveHistory() {
+        if (history.length > 10) history.shift();
+        history.push(ctx.getImageData(0, 0, canvas.width, canvas.height));
+    }
+
+    canvas.addEventListener('pointerdown', (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const x = Math.floor((e.clientX - rect.left) * (canvas.width / rect.width));
+        const y = Math.floor((e.clientY - rect.top) * (canvas.height / rect.height));
+        saveHistory();
+        floodFill(x, y, hexToRgb(activeColor));
+    });
+
+    document.getElementById('magic-d').onclick = magicFill;
+    document.getElementById('magic-m').onclick = magicFill;
+    document.getElementById('reset-d').onclick = () => { if(history[0]) { ctx.putImageData(history[0],0,0); history = [history[0]]; }};
+    document.getElementById('reset-m').onclick = () => document.getElementById('reset-d').onclick();
+    document.getElementById('undo-d').onclick = () => { if(history.length > 1) { history.pop(); ctx.putImageData(history[history.length-1],0,0); }};
+    document.getElementById('undo-m').onclick = () => document.getElementById('undo-d').onclick();
+    document.getElementById('save-d').onclick = () => { const a = document.createElement('a'); a.href=canvas.toDataURL(); a.download='moj_rad.png'; a.click(); };
+    document.getElementById('save-m').onclick = () => document.getElementById('save-d').onclick();
+
+    initUI();
+    loadTemplate(galleryItems[0].url);
+</script>
+</body>
+</html>
+        <button id="upload-m" class="btn-control" style="background:#8b5cf6">📁</button>
+        <button id="save-m" class="btn-control" style="background:#10b981">💾</button>
+        <button id="reset-m" class="btn-control" style="background:#f97316">✨</button>
+    </div>
+    <div id="mobile-color-strip"></div>
+</div>
+
+<script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+    const fileInput = document.getElementById('file-input');
+    const loading = document.getElementById('loading-overlay');
+
     const colors = [
         '#ffffff', '#ff4757', '#ff7f50', '#f1c40f', '#2ed573', 
         '#1e90ff', '#3498db', '#9b59b6', '#e056fd', '#000000',
