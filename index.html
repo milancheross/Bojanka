@@ -3,107 +3,510 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>IĆOVA Bojanka Pro</title>
+    <title>IĆOVA Bojanka Pro - Čarobna Paleta</title>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { 
-            background-color: #fdf2f8; 
-            font-family: 'Segoe UI', Roboto, sans-serif; 
-            touch-action: none;
-            user-select: none;
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none; /* sprečava selekciju teksta */
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background: linear-gradient(145deg, #fce7f3 0%, #fbcfe8 100%);
+            font-family: 'Segoe UI', 'Quicksand', system-ui, -apple-system, 'Roboto', sans-serif;
+            touch-action: pan-x pan-y; /* omogućava skrolovanje po bočnim menijima */
             overflow: hidden;
             height: 100dvh;
             display: flex;
             flex-direction: column;
         }
 
-        #app-wrapper { display: flex; flex: 1; overflow: hidden; }
-
-        /* SIDEBARS */
-        .sidebar-left { width: 220px; background: white; border-right: 2px solid #fce7f3; display: flex; flex-direction: column; padding: 12px; gap: 10px; overflow-y: auto; }
-        .sidebar-right { width: 110px; background: white; border-left: 2px solid #fce7f3; display: flex; flex-direction: column; align-items: center; padding: 12px 8px; gap: 8px; overflow-y: auto; }
-
-        .sidebar-title h1 { font-size: 20px; font-weight: 900; color: #db2777; text-align: center; }
-        .sidebar-title p { font-size: 10px; color: #f9a8d4; text-align: center; font-weight: 700; text-transform: uppercase; }
-
-        .tools-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
-        .btn-control {
-            padding: 10px 5px; border-radius: 10px; font-weight: 800; font-size: 10px;
-            text-align: center; text-transform: uppercase; color: white; cursor: pointer;
-            border: none; box-shadow: 0 3px 0 rgba(0,0,0,0.1); transition: 0.1s;
+        #app-wrapper {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+            gap: 4px;
+            padding: 6px;
         }
-        .btn-control:active { transform: translateY(2px); box-shadow: 0 1px 0 rgba(0,0,0,0.1); }
+
+        /* SIDEBAR LEVO - GALERIJA + ALATI */
+        .sidebar-left {
+            width: 260px;
+            background: rgba(255, 255, 255, 0.94);
+            backdrop-filter: blur(2px);
+            border-radius: 32px;
+            border: 2px solid #ffb8de;
+            display: flex;
+            flex-direction: column;
+            padding: 16px 12px;
+            gap: 14px;
+            overflow-y: auto;
+            box-shadow: 8px 8px 20px rgba(0, 0, 0, 0.05);
+        }
+
+        .sidebar-title h1 {
+            font-size: 24px;
+            font-weight: 900;
+            background: linear-gradient(135deg, #db2777, #f97316);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-align: center;
+            letter-spacing: -0.5px;
+        }
+        .sidebar-title p {
+            font-size: 11px;
+            color: #f9a8d4;
+            text-align: center;
+            font-weight: 700;
+        }
+
+        .tools-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+        .btn-control {
+            padding: 10px 6px;
+            border-radius: 40px;
+            font-weight: 800;
+            font-size: 12px;
+            text-align: center;
+            color: white;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.1);
+            transition: 0.08s linear;
+            background: #c084fc;
+        }
+        .btn-control:active {
+            transform: translateY(2px);
+            box-shadow: 0 1px 0 rgba(0,0,0,0.1);
+        }
         .full-width { grid-column: span 2; }
 
-        /* CANVAS */
-        #canvas-container { 
-            flex: 1; background: #eee; position: relative; 
-            display: flex; align-items: center; justify-content: center; overflow: hidden; 
+        /* GLAVNA GALERIJA SLIKA (uvek vidljiva) */
+        .gallery-section {
+            margin-top: 6px;
         }
-        canvas { background: white; max-width: 95%; max-height: 95%; box-shadow: 0 0 20px rgba(0,0,0,0.1); cursor: crosshair; }
-
-        /* COLOR BUTTONS */
-        #palette-desktop, #mobile-color-strip { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-        .color-btn { 
-            width: 40px; height: 40px; border-radius: 50%; border: 3px solid white; 
-            box-shadow: 0 3px 6px rgba(0,0,0,0.1); cursor: pointer; 
+        .gallery-title {
+            font-weight: 800;
+            color: #be185d;
+            font-size: 14px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            border-left: 4px solid #ec4899;
+            padding-left: 10px;
         }
-        .color-btn.active { transform: scale(1.2); border-color: #db2777; z-index: 10; }
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+        .gallery-card {
+            background: #fff0f5;
+            border-radius: 20px;
+            padding: 10px 4px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 13px;
+            color: #9d174d;
+            border: 2px solid #fbcfe8;
+            cursor: pointer;
+            transition: all 0.15s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+        }
+        .gallery-card:active {
+            transform: scale(0.96);
+            background: #fce7f3;
+        }
+        .gallery-emoji {
+            font-size: 28px;
+        }
 
-        /* MOBILE */
-        #mobile-bottom { display: none; background: white; padding: 8px; flex-direction: column; gap: 8px; }
-        #mobile-tools { display: flex; overflow-x: auto; gap: 8px; padding-bottom: 5px; }
-        #mobile-color-strip { display: flex; overflow-x: auto; padding: 5px; }
-        #mobile-color-strip .color-btn { flex-shrink: 0; width: 45px; height: 45px; }
+        /* SIDEBAR DESNO - VELIKA PALETA */
+        .sidebar-right {
+            width: 130px;
+            background: rgba(255, 255, 255, 0.94);
+            backdrop-filter: blur(2px);
+            border-radius: 32px;
+            border: 2px solid #ffb8de;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 16px 8px;
+            overflow-y: auto;
+            gap: 10px;
+        }
+        .paleta-naslov {
+            font-weight: 800;
+            font-size: 12px;
+            color: #ec4899;
+            background: white;
+            padding: 4px 12px;
+            border-radius: 60px;
+        }
+        .color-palette-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px 8px;
+            justify-items: center;
+            width: 100%;
+        }
+        .color-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            border: 3px solid white;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+            cursor: pointer;
+            transition: all 0.1s;
+        }
+        .color-btn.active {
+            transform: scale(1.2);
+            border-color: #db2777;
+            box-shadow: 0 0 0 2px #ffb3d9;
+        }
 
-        @media (max-width: 768px) {
+        /* CANVAS ZONA */
+        #canvas-container {
+            flex: 1;
+            background: #e9e4d8;
+            border-radius: 48px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            box-shadow: inset 0 0 12px rgba(0,0,0,0.05), 0 10px 20px rgba(0,0,0,0.1);
+        }
+        canvas {
+            background: white;
+            max-width: 95%;
+            max-height: 95%;
+            border-radius: 24px;
+            box-shadow: 0 12px 28px rgba(0,0,0,0.2);
+            cursor: crosshair;
+        }
+
+        /* MOBILE RESPONSIVE */
+        #mobile-bottom {
+            display: none;
+            background: rgba(255,255,240,0.96);
+            padding: 12px;
+            border-radius: 32px 32px 0 0;
+            flex-direction: column;
+            gap: 10px;
+            border-top: 2px solid #ffc0e0;
+        }
+        .mobile-tools-row {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+        }
+        .mobile-color-strip {
+            display: flex;
+            overflow-x: auto;
+            gap: 12px;
+            padding: 8px 4px;
+        }
+        .mobile-color-strip .color-btn {
+            flex-shrink: 0;
+            width: 48px;
+            height: 48px;
+        }
+        @media (max-width: 780px) {
             .sidebar-left, .sidebar-right { display: none; }
             #mobile-bottom { display: flex; }
+            #app-wrapper { padding: 0; }
         }
 
         #loading-overlay {
-            position: absolute; inset: 0; background: rgba(255,255,255,0.9);
-            display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 1000;
+            position: absolute;
+            inset: 0;
+            background: rgba(255,245,250,0.92);
+            backdrop-filter: blur(12px);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            border-radius: 48px;
+            font-weight: bold;
+            gap: 16px;
         }
+        .spinner {
+            width: 48px;
+            height: 48px;
+            border: 5px solid #f3c6e6;
+            border-top: 5px solid #ec4899;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        button:active { transform: translateY(1px); }
     </style>
 </head>
 <body>
 
 <div id="app-wrapper">
+    <!-- LEVA STRANA: SVI ALATI + GALERIJA SLIKA (uvek vidljive, imena svih) -->
     <aside class="sidebar-left">
-        <div class="sidebar-title"><h1>🎨 Ićova Bojanka</h1><p>V3.1 Pro</p></div>
+        <div class="sidebar-title">
+            <h1>🎨 Ićova Bojanka</h1>
+            <p>✨ PRO MAGIC ✨</p>
+        </div>
         
         <div class="tools-grid">
-            <button id="undo-d" class="btn-control" style="background:#6b7280">↩️ Nazad</button>
-            <button id="reset-d" class="btn-control" style="background:#f97316">✨ Očisti</button>
-            <button id="save-d" class="btn-control full-width" style="background:#10b981">💾 Sačuvaj Rad</button>
-            <button id="upload-d" class="btn-control full-width" style="background:#8b5cf6">📁 Ubaci Sliku</button>
-            <button id="magic-d" class="btn-control full-width" style="background:#ec4899; font-size:12px">🪄 Magično Bojenje</button>
+            <button id="undo-d" class="btn-control" style="background:#6b7280">↩️ NAZAD</button>
+            <button id="reset-d" class="btn-control" style="background:#f97316">🗑️ OČISTI</button>
+            <button id="save-d" class="btn-control full-width" style="background:#10b981">💾 SAČUVAJ SLIKU</button>
+            <button id="upload-d" class="btn-control full-width" style="background:#8b5cf6">📁 UPLOAD SLIKU</button>
+            <button id="magic-d" class="btn-control full-width" style="background:#ec4899; font-size:14px">🪄 MAGIČNO BOJENJE (Pametno)</button>
         </div>
 
         <input type="file" id="file-input" hidden accept="image/*">
         
-        <div style="margin-top:10px">
-            <p style="font-size:11px; font-weight:800; color:#999; margin-bottom:5px">IZABERI CRTEŽ:</p>
-            <div id="gallery" style="display:grid; grid-template-columns: 1fr 1fr; gap:5px"></div>
+        <!-- GALERIJA: SVE SLIKE SE PRIKAZUJU SA NAZIVIMA, UVIEK VIDLJIVE -->
+        <div class="gallery-section">
+            <div class="gallery-title"><span>🖼️</span> MOJA GALERIJA CRTEŽA</div>
+            <div id="gallery-grid-container" class="gallery-grid">
+                <!-- dinamički učitane slike sa imenima -->
+            </div>
         </div>
+        <div style="font-size: 10px; text-align: center; color:#f5a; margin-top: 5px;">⬅️ klikni na crtež za učitavanje</div>
     </aside>
 
+    <!-- CENTRALNI CANVAS -->
     <main id="canvas-container">
-        <div id="loading-overlay"><h2>🪄 Čarolija u toku...</h2></div>
+        <div id="loading-overlay">
+            <div class="spinner"></div>
+            <h2 style="color:#db2777">🪄 Čarobna transformacija...</h2>
+        </div>
         <canvas id="canvas"></canvas>
     </main>
 
+    <!-- DESNA STRANA: VELIKA PALETA BOJA (40+ boja) -->
     <aside class="sidebar-right">
-        <div id="palette-desktop"></div>
+        <div class="paleta-naslov">🌈 VELIKA PALETA</div>
+        <div id="desktop-palette" class="color-palette-grid"></div>
     </aside>
 </div>
 
+<!-- MOBILNI DEO -->
 <div id="mobile-bottom">
-    <div id="mobile-tools">
-        <button id="magic-m" class="btn-control" style="background:#ec4899; min-width:100px">🪄 Magija</button>
+    <div class="mobile-tools-row">
+        <button id="magic-m" class="btn-control" style="background:#ec4899; min-width:90px">🪄 MAGIJA</button>
         <button id="undo-m" class="btn-control" style="background:#6b7280">↩️</button>
         <button id="upload-m" class="btn-control" style="background:#8b5cf6">📁</button>
+        <button id="save-m" class="btn-control" style="background:#10b981">💾</button>
+        <button id="reset-m" class="btn-control" style="background:#f97316">✨</button>
+    </div>
+    <div id="mobile-color-strip" class="mobile-color-strip"></div>
+</div>
+
+<script>
+    (function(){
+        // --- KANVAS I KONTEKST ---
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        const fileInput = document.getElementById('file-input');
+        const loadingOverlay = document.getElementById('loading-overlay');
+
+        // ---------- OGROMNA PALETA BOJA (preko 40 prelepih nijansi) ----------
+        const megaColors = [
+            // pasteli i osnovne
+            '#FFFFFF', '#FFF0F5', '#FADADD', '#FFB7B2', '#FFDAC1', '#E2F0CB', '#B5EAD7', '#C7CEEA', 
+            '#FF9AA2', '#FFB7B2', '#FFDAC1', '#E2F0CB', '#B5EAD7', '#C7CEEA', 
+            // bogate i jake
+            '#FF4757', '#FF6B81', '#FF7F50', '#FFA502', '#FFA502', '#2ED573', '#1E90FF', '#3742FA',
+            '#9B59B6', '#E056FD', '#F368E0', '#FF9F43', '#EE5A24', '#0ABDE3', '#10AC84', '#006266',
+            '#B71540', '#3B3B98', '#4a69bd', '#f0932b', '#eb4d4b', '#6ab04c', '#be2edd', '#130f40',
+            '#FC427B', '#F97F51', '#CAD3C8', '#58B19F', '#2C3A47', '#B33771', '#16A085', '#E67E22',
+            '#D35400', '#C0392B', '#8E44AD', '#2C3E50', '#7F8C8D', '#BDC3C7', '#34495E'
+        ];
+        // ukloni duplikate (sigurnost)
+        const uniqueColors = [...new Map(megaColors.map(c => [c, c])).values()];
+        
+        let activeColor = uniqueColors[5]; // neka lepa roze
+        let history = [];
+        let isProcessing = false;
+        let currentImageDataBackup = null;
+
+        // ---------- GALERIJA SLIKA SA PRAVIM IMENIMA I SADRŽAJEM (uvek vidljive) ----------
+        // Koristimo visokokvalitetne line-art slike sa besplatnih izvora (CORS podržano)
+        const galleryImages = [
+            { name: '🌸 LEPTIR', url: 'https://cdn.pixabay.com/photo/2020/04/16/14/17/butterfly-5050542_1280.png', emoji: '🦋' },
+            { name: '🚜 TRAKTOR', url: 'https://i.imgur.com/8mX5K3W.png', emoji: '🚜' },
+            { name: '🏠 KUĆA', url: 'https://i.imgur.com/WvXG9oV.png', emoji: '🏠' },
+            { name: '🐱 MACKA', url: 'https://i.imgur.com/uY6T6o7.png', emoji: '🐱' },
+            { name: '🐘 SLON', url: 'https://i.imgur.com/4zYf7b8.png', emoji: '🐘' },
+            { name: '🌈 DUGA', url: 'https://i.imgur.com/Z1Yq9oM.png', emoji: '🌈' },
+            { name: '🐝 PČELA', url: 'https://i.imgur.com/KhHt3nD.png', emoji: '🐝' },
+            { name: '🐸 ŽABA', url: 'https://i.imgur.com/rW3lNkF.png', emoji: '🐸' }
+        ];
+
+        // funkcionalno učitavanje šablona (pretvara u line-art automatski)
+        async function loadTemplateFromUrl(imageUrl, preserveHistory = false) {
+            if (!preserveHistory) {
+                loadingOverlay.style.display = 'flex';
+            }
+            return new Promise((resolve, reject) => {
+                const img = new Image();
+                img.crossOrigin = "Anonymous";
+                img.onload = () => {
+                    try {
+                        let maxWidth = 900;
+                        let scale = 1;
+                        if (img.width > maxWidth) {
+                            scale = maxWidth / img.width;
+                        }
+                        canvas.width = img.width * scale;
+                        canvas.height = img.height * scale;
+                        ctx.fillStyle = "white";
+                        ctx.fillRect(0, 0, canvas.width, canvas.height);
+                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                        // Pretvaranje u line-art (crne linije / bele površine za bojenje)
+                        convertToLineArt();
+                        saveHistory();
+                        if (!preserveHistory) loadingOverlay.style.display = 'none';
+                        resolve();
+                    } catch(err) { reject(err); loadingOverlay.style.display = 'none'; }
+                };
+                img.onerror = () => {
+                    loadingOverlay.style.display = 'none';
+                    alert("Greška pri učitavanju slike, probaj drugu.");
+                    reject();
+                };
+                img.src = imageUrl;
+            });
+        }
+
+        // Unapređena konverzija u line-art: čuva ivice i čini površine čistim belim
+        function convertToLineArt() {
+            const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const data = imgData.data;
+            // Prvo napravimo detekciju ivica jednostavnim sobel-like pragom
+            const grayData = new Uint8ClampedArray(canvas.width * canvas.height);
+            for (let i = 0; i < data.length; i += 4) {
+                let gray = 0.34 * data[i] + 0.5 * data[i+1] + 0.16 * data[i+2];
+                grayData[i/4] = gray;
+            }
+            // Primena praga: tamne oblasti postaju crne (linije), svetle bele
+            const edgeSensitivity = 35;
+            for (let i = 0; i < data.length; i += 4) {
+                let x = (i/4) % canvas.width;
+                let y = Math.floor((i/4) / canvas.width);
+                let grayVal = grayData[i/4];
+                // Provera okoline da li je oštar prelaz (gruba ivica)
+                let isEdge = false;
+                for (let dx = -1; dx <= 1; dx++) {
+                    for (let dy = -1; dy <= 1; dy++) {
+                        let nx = x + dx;
+                        let ny = y + dy;
+                        if (nx >=0 && nx < canvas.width && ny >=0 && ny < canvas.height) {
+                            let neighborGray = grayData[ny * canvas.width + nx];
+                            if (Math.abs(grayVal - neighborGray) > edgeSensitivity) {
+                                isEdge = true;
+                            }
+                        }
+                    }
+                }
+                if (isEdge || grayVal < 100) {
+                    data[i] = 0;     // R
+                    data[i+1] = 0;   // G
+                    data[i+2] = 0;   // B
+                } else {
+                    data[i] = 255;
+                    data[i+1] = 255;
+                    data[i+2] = 255;
+                }
+                data[i+3] = 255;
+            }
+            ctx.putImageData(imgData, 0, 0);
+            // dodatno izoštravanje: ponovo prolaz da se linije podebljaju
+            const finalData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const finalPixels = finalData.data;
+            for (let i = 0; i < finalPixels.length; i += 4) {
+                if (finalPixels[i] === 0 && finalPixels[i+1] === 0 && finalPixels[i+2] === 0) continue;
+                // provera suseda za crnim - ako ima crnog suseda, postavi ga na crno (da linije budu debele)
+                let idx = i/4;
+                let xx = idx % canvas.width;
+                let yy = Math.floor(idx / canvas.width);
+                let hasBlackNeighbor = false;
+                for (let dx = -1; dx <= 1; dx++) {
+                    for (let dy = -1; dy <= 1; dy++) {
+                        let nx = xx + dx, ny = yy + dy;
+                        if (nx>=0 && nx<canvas.width && ny>=0 && ny<canvas.height) {
+                            let neiIdx = (ny * canvas.width + nx) * 4;
+                            if (finalPixels[neiIdx] === 0 && finalPixels[neiIdx+1] === 0 && finalPixels[neiIdx+2] === 0) {
+                                hasBlackNeighbor = true;
+                            }
+                        }
+                    }
+                }
+                if (hasBlackNeighbor) {
+                    finalPixels[i] = finalPixels[i+1] = finalPixels[i+2] = 0;
+                }
+            }
+            ctx.putImageData(finalData, 0, 0);
+        }
+
+        // Flood fill (optimizovan i brz)
+        function floodFill(startX, startY, fillRGB) {
+            if (startX < 0 || startY < 0 || startX >= canvas.width || startY >= canvas.height) return;
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const { width, height, data } = imageData;
+            const startIdx = (startY * width + startX) * 4;
+            const targetR = data[startIdx];
+            const targetG = data[startIdx+1];
+            const targetB = data[startIdx+2];
+            
+            // Ne bojimo crne linije (tamne ivice)
+            if (targetR < 60 && targetG < 60 && targetB < 60) return;
+            if (targetR === fillRGB.r && targetG === fillRGB.g && targetB === fillRGB.b) return;
+            
+            const stack = [[startX, startY]];
+            while (stack.length) {
+                const [x, y] = stack.pop();
+                const idx = (y * width + x) * 4;
+                if (x >= 0 && x < width && y >= 0 && y < height &&
+                    data[idx] === targetR && data[idx+1] === targetG && data[idx+2] === targetB) {
+                    data[idx] = fillRGB.r;
+                    data[idx+1] = fillRGB.g;
+                    data[idx+2] = fillRGB.b;
+                    stack.push([x+1, y], [x-1, y], [x, y+1], [x, y-1]);
+                }
+            }
+            ctx.putImageData(imageData, 0, 0);
+        }
+
+        function hexToRgb(hex) {
+            let h = hex.startsWith('#') ? hex.slice(1) : hex;
+            if (h.length === 3) h = h.split('').map(c => c+c).join('');
+            const bigint = parseInt(h, 16);
+            return { r: (bigint >> 16) & 255, g: (bigint >> 8) & 255, b: bigint & 255 };
+        }
+
+        function saveHistory() {
+            if (history.length > 12) history.shift();
+            history.push(ctx.getImageData(0, 0, canvas.width, canvas.height));
+        }
+
+        // ----- PAMETNO MAGIČNO BOJENJE (unapređeno) -----
+        async function smartMagicFill() {
+            if (isProcessing) return;
+            isProcessing = true;
+            loadingOverlay.style.display = 'flex';
+            await new         <button id="upload-m" class="btn-control" style="background:#8b5cf6">📁</button>
         <button id="save-m" class="btn-control" style="background:#10b981">💾</button>
         <button id="reset-m" class="btn-control" style="background:#f97316">✨</button>
     </div>
